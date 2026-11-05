@@ -14,6 +14,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <assimp/cimport.h>
 
 #include "Mesh.h"
 #include  "Shader.h"
@@ -51,21 +52,42 @@ private:
 										// Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
 	void loadModel(string path)
 	{
-		// Read file via ASSIMP
-		Assimp::Importer importer;
-		const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+
+		// Usamos la API pura de C para evitar el choque de ABI
+		const aiScene* scene = aiImportFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 
 		// Check for errors
-		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
+		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 		{
-			cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+			cout << "ERROR::ASSIMP:: " << aiGetErrorString() << endl;
 			return;
 		}
+
 		// Retrieve the directory path of the filepath
 		this->directory = path.substr(0, path.find_last_of('/'));
 
 		// Process ASSIMP's root node recursively
 		this->processNode(scene->mRootNode, scene);
+
+		// IMPORTANTE: Liberar la memoria de la escena al terminar el proceso
+		aiReleaseImport(scene);
+
+		// Read file via ASSIMP
+	//	Assimp::Importer importer;
+	//	//const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+	//	const aiScene *scene = importer.ReadFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+
+	//	// Check for errors
+	//	if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
+	//	{
+	//		cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+	//		return;
+	//	}
+	//	// Retrieve the directory path of the filepath
+	//	this->directory = path.substr(0, path.find_last_of('/'));
+
+	//	// Process ASSIMP's root node recursively
+	//	this->processNode(scene->mRootNode, scene);
 	}
 
 	// Processes a node in a recursive fashion. Processes each individual mesh located at the node and repeats this process on its children nodes (if any).
@@ -108,10 +130,23 @@ private:
 			vertex.Position = vector;
 
 			// Normals
-			vector.x = mesh->mNormals[i].x;
+		
+			if (mesh->HasNormals())
+			{
+				vector.x = mesh->mNormals[i].x;
+				vector.y = mesh->mNormals[i].y;
+				vector.z = mesh->mNormals[i].z;
+				vertex.Normal = vector;
+			}
+			else
+			{
+				// Si el FBX no tiene normales, asignamos un valor por defecto para no romper los shaders de luz
+				vertex.Normal = glm::vec3(0.0f, 1.0f, 0.0f);
+			}
+			/*vector.x = mesh->mNormals[i].x;
 			vector.y = mesh->mNormals[i].y;
 			vector.z = mesh->mNormals[i].z;
-			vertex.Normal = vector;
+			vertex.Normal = vector;*/
 
 			// Texture Coordinates
 			if (mesh->mTextureCoords[0]) // Does the mesh contain texture coordinates?

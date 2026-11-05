@@ -130,6 +130,11 @@ public:
 		return this->front;
 	}
 
+
+	void SetPosition(glm::vec3 NewPosition) {
+		this->position = NewPosition;
+	}
+
 private:
 	// Camera Attributes
 	glm::vec3 position;
