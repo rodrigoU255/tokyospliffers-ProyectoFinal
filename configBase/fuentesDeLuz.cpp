@@ -1,5 +1,8 @@
+//Proyecto CGIH parte 1
 #include <iostream>
 #include <cmath>
+
+#include <vector>
 
 // GLEW
 #include <GL/glew.h>
@@ -24,10 +27,21 @@
 #include "Camera.h"
 #include "Model.h"
 
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+
+//Phys
+#include <btBulletDynamicsCommon.h>
+
+
 // Function prototypes
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void MouseCallback(GLFWwindow* window, double xPos, double yPos);
 void DoMovement();
+
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
@@ -119,24 +133,22 @@ void Son(bool bIsActiveSun, float cuanto, GLfloat cuanto_tiempo) {
 	if (TotaldeltaTimes >= cuanto_tiempo / 2) {
 
 		if (IsNight) {
-			SunLight.x = glm::clamp(SunLight.x + cuanto * TotaldeltaTimes, 0.0f, 1.0f);
-			SunLight.y = glm::clamp(SunLight.y + cuanto * TotaldeltaTimes, 0.0f, 1.0f);
-			SunLight.z = glm::clamp(SunLight.z + cuanto * TotaldeltaTimes, 0.0f, 1.0f);
+			SunLight.x += cuanto * TotaldeltaTimes;
+			SunLight.y += cuanto * TotaldeltaTimes;
+			SunLight.z += cuanto * TotaldeltaTimes;
 		}
 		else {
-			SunLight.x = glm::clamp(SunLight.x - cuanto * TotaldeltaTimes, 0.0f, 1.0f);
-			SunLight.y = glm::clamp(SunLight.y - cuanto * TotaldeltaTimes, 0.0f, 1.0f);
-			SunLight.z = glm::clamp(SunLight.z - cuanto * TotaldeltaTimes, 0.0f, 1.0f);
+			SunLight.x -= cuanto * TotaldeltaTimes;
+			SunLight.y -= cuanto * TotaldeltaTimes;
+			SunLight.z -= cuanto * TotaldeltaTimes;
 		}
 	}
 	if (TotaldeltaTimes >= cuanto_tiempo) {
 		TotaldeltaTimes = 0;
 		IsNight = !IsNight;
 	}
+
 }
-
-
-
 
 int main()
 {
@@ -148,6 +160,82 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);*/
+
+	//------------------------------------------------------------------------------------------------------------------------------------
+	// 1. Configuración de colisiones predeterminada
+	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
+
+	// 2. Despachador de colisiones (maneja los algoritmos de choque)
+	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+
+	// 3. Broadphase (optimiza qué objetos pueden chocar antes de calcularlos con precisión)
+	btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
+
+	// 4. Solucionador de restricciones (gravedad, fuerzas, articulaciones)
+	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
+
+	// 5. El Mundo Físico Dinámico
+	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
+
+	// Configurar la gravedad (eje Y hacia abajo)
+	dynamicsWorld->setGravity(btVector3(0, -9.81, 0));
+
+	// --- Crear el Suelo Estático (Caja delimitadora) ---
+	btCollisionShape* groundShape = new btBoxShape(btVector3(15.0f, 0.5f, 25.0f));
+	//btCollisionShape* groundShape = new btBoxShape(btVector3(50.0f, 1.0f, 50.0f));
+	btTransform groundTransform;
+	groundTransform.setIdentity();
+	groundTransform.setOrigin(btVector3(0, -1.9f, 0)); // Posición en Y
+
+	btDefaultMotionState* groundMotionState = new btDefaultMotionState(groundTransform);
+	// Al pasarle 0.0f de masa, Bullet sabe que el objeto NO se mueve (es estático)
+	btRigidBody::btRigidBodyConstructionInfo groundInfo(0.0f, groundMotionState, groundShape, btVector3(0, 0, 0));
+	btRigidBody* groundBody = new btRigidBody(groundInfo);
+	dynamicsWorld->addRigidBody(groundBody);
+
+	// --- Crear el Balón Dinámico (Esfera de colisión) ---
+	btCollisionShape* sphereShape = new btSphereShape(0.5f); // Radio de 1.0
+	btTransform startTransform;
+	startTransform.setIdentity();
+	startTransform.setOrigin(btVector3(0, 20.0f, 0)); // Empieza cayendo desde 20 unidades arriba
+
+	btScalar mass = 1.0f;
+	btVector3 localInertia(0, 0, 0);
+	sphereShape->calculateLocalInertia(mass, localInertia); // Calcula cómo debe rodar/rebotar
+
+	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(startTransform);
+	btRigidBody::btRigidBodyConstructionInfo sphereInfo(mass, sphereMotionState, sphereShape, localInertia);
+	btRigidBody* sphereBody = new btRigidBody(sphereInfo);
+	dynamicsWorld->addRigidBody(sphereBody);
+
+
+	//CHARRRRRRRRRRRRRRRR
+	// --- INICIALIZACIÓN (Antes del while) ---
+// Radio de 0.5, Altura de la sección cilíndrica de 1.0 (Altura total = 2.0 unidades)
+	btCollisionShape* playerShape = new btCapsuleShape(0.5f, 1.0f);
+
+	btScalar playerMass = 75.0f;
+	btVector3 playerInertia(0, 0, 0);
+	playerShape->calculateLocalInertia(playerMass, playerInertia);
+
+	btTransform playerStartTransform;
+	playerStartTransform.setIdentity();
+	playerStartTransform.setOrigin(btVector3(0, 2.0f, 0)); // Posición inicial del jugador
+	btDefaultMotionState* playerMotionState = new btDefaultMotionState(playerStartTransform);
+
+	btRigidBody::btRigidBodyConstructionInfo playerInfo(playerMass, playerMotionState, playerShape, playerInertia);
+	btRigidBody* playerBody = new btRigidBody(playerInfo);
+
+	// ¡CRÍTICO! Bloquear ejes de rotación X y Z. Solo permitimos giro sobre Y.
+	playerBody->setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
+	// Quitar fricción pura para no quedarse pegado a las paredes
+	playerBody->setFriction(0.0f);
+
+	dynamicsWorld->addRigidBody(playerBody);
+
+
+	//-------------------------------------------------------------------------------------------------------------------------------------
+
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Fuentes de luz", nullptr, nullptr);
@@ -183,8 +271,6 @@ int main()
 	// Define the viewport dimensions
 	glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-
-
 	Shader lightingShader("Shader/lighting.vs", "Shader/lighting.frag");
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 
@@ -192,6 +278,8 @@ int main()
 	Model Dog((char*)"Models/ball.obj");
 	Model Piso((char*)"Models/piso.obj");
 
+	Model chamaca((char*)"Models/MeinGott.obj");
+	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
 
 	// First, set the container's VAO (and VBO)
@@ -225,10 +313,96 @@ int main()
 		lastFrame = currentFrame;
 		TotaldeltaTimes += deltaTime;
 
-
-		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 		glfwPollEvents();
 		DoMovement();
+
+		//----------------------------------------------------------------------------------------------------
+
+
+
+
+		//MOVEMENT
+		// 1. Obtener la velocidad física actual (vital para preservar la caída de la gravedad en Y)
+		btVector3 currentVelocity = playerBody->getLinearVelocity();
+		btVector3 targetVelocity(0.0f, currentVelocity.getY(), 0.0f);
+
+		float speed = 5.0f; // Ajusta la velocidad de caminata
+		glm::vec3 moveDir(0.0f);
+
+		// 2. Extraer los vectores direccionales de tu cámara
+		glm::vec3 camFront = camera.GetFront();
+		camFront.y = 0.0f; // Anular inclinación vertical
+		camFront = glm::normalize(camFront);
+		glm::vec3 camRight = glm::normalize(glm::cross(camFront, glm::vec3(0.0f, 1.0f, 0.0f)));
+
+		// 3. Leer las teclas directamente del arreglo que ya tienes configurado
+		if (keys[GLFW_KEY_W]) moveDir += camFront;
+		if (keys[GLFW_KEY_S]) moveDir -= camFront;
+		if (keys[GLFW_KEY_A]) moveDir -= camRight;
+		if (keys[GLFW_KEY_D]) moveDir += camRight;
+
+		// 4. Aplicar el movimiento si hay teclas presionadas
+		if (glm::length(moveDir) > 0.0f) {
+			moveDir = glm::normalize(moveDir);
+			targetVelocity.setX(moveDir.x * speed);
+			targetVelocity.setZ(moveDir.z * speed);
+
+			// Despertar el cuerpo: Bullet desactiva objetos quietos para ahorrar CPU. 
+			// Si no lo despiertas, el jugador se congelará tras unos segundos inactivo.
+			playerBody->activate(true);
+		}
+
+		// 5. Inyectar la velocidad final al colisionador
+		playerBody->setLinearVelocity(targetVelocity);
+
+
+
+
+		dynamicsWorld->stepSimulation(deltaTime, 10);
+		// 2. Obtener la nueva transformación (posición/rotación) del balón
+
+		btTransform trans;
+
+
+		sphereBody->getMotionState()->getWorldTransform(trans);
+
+		// PRUEBA SIN GRÁFICOS: Descomenta esto para ver cómo los números caen en la consola
+		// std::cout << "Altura Y del balon: " << trans.getOrigin().getY() << std::endl;
+
+		// 3. Convertir la física directamente a matriz de GLM
+		float matrix[16];
+		trans.getOpenGLMatrix(matrix);
+		glm::mat4 model = glm::make_mat4(matrix);
+
+
+
+
+		playerBody->getMotionState()->getWorldTransform(trans);
+		btVector3 pos = trans.getOrigin();
+
+		// Calcular una posición para la cámara (ej. 3 metros atrás y 2 metros arriba del personaje)
+		glm::vec3 offset = (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 targetCameraPos = glm::vec3(pos.x(), pos.y(), pos.z()) + offset;
+
+		// Tu clase Camera asume tener un método o propiedad para asignar la posición.
+		// Si tu variable interna de cámara es privada y no tiene setter, tendrás que agregarle 
+		// un método SetPosition(glm::vec3 newPos) en Camera.h.
+		camera.SetPosition(targetCameraPos);
+
+
+
+
+
+
+
+
+
+
+
+		//----------------------------------------------------------------------------------------------------
+
+
+		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 
 		// Clear the colorbuffer
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -236,6 +410,9 @@ int main()
 
 		// OpenGL options
 		glEnable(GL_DEPTH_TEST);
+
+
+
 
 
 
@@ -252,7 +429,6 @@ int main()
 		glUniform3f(viewPosLoc, camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
 
 
-		//Son(activeSun, 0.0005f, 10);
 		Son(activeSun, 0.01f, 10);
 
 		// Directional light
@@ -341,27 +517,81 @@ int main()
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 
-		glm::mat4 model(1);
-
+		//glm::mat4 model(1);
 
 
 		//Carga de modelo 
-		view = camera.GetViewMatrix();
-		model = glm::mat4(1);
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+		// 1. Configurar vista y matrices generales
+		//view = camera.GetViewMatrix();
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+		// 2. Dibujar el Piso (Estático)
+		glm::mat4 modelPiso = glm::mat4(1.0f);
+		// La física del suelo la pusiste en Y = -1.0f, así que bajamos el modelo visual para que coincidan
+		modelPiso = glm::translate(modelPiso, glm::vec3(0.0f, -1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiso));
 		Piso.Draw(lightingShader);
 
 
+		//btTransform trans;
+		playerBody->getMotionState()->getWorldTransform(trans);
+		//float matrix[16];
+		trans.getOpenGLMatrix(matrix);
+		glm::mat4 PlayerModel = glm::make_mat4(matrix);
 
-		model = glm::mat4(1);
-		glEnable(GL_BLEND);//Avtiva la funcionalidad para trabajar el canal alfa -----------------------------------------------
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-		Dog.Draw(lightingShader);
-		glDisable(GL_BLEND);  //Desactiva el canal alfa ---------------------------------------------
+		// Compensación visual: Bajamos el modelo la mitad de la altura total de la cápsula (1.0 unidad) 
+		// para que los pies del modelo visual toquen el fondo del colisionador invisible.
+		PlayerModel = glm::rotate(PlayerModel, 135.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		//PlayerModel = glm::rotate(PlayerModel, 135.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		PlayerModel = glm::translate(PlayerModel, glm::vec3(0.0f, -1.0f, 0.0f));
+		PlayerModel = glm::scale(PlayerModel, glm::vec3(0.21f, 0.21f, 0.21f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(PlayerModel));
+		chamaca.Draw(lightingShader);
+
+
+
+
+		// (Opcional: Dibujar tu cubo del VAO estático en el origen)
+		glm::mat4 modelCubo = glm::mat4(1.0f);
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
+		// 3. Dibujar el Balón/Dog (Dinámico)
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+		// ¡AQUÍ ESTÁ LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		Dog.Draw(lightingShader);
+
+		glDisable(GL_BLEND);
+
+		/*
+		//      view = camera.GetViewMatrix();
+		//model = glm::mat4(1);
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//Piso.Draw(lightingShader);
+
+
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//glBindVertexArray(VAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+
+		//model = glm::mat4(1);
+		//glEnable(GL_BLEND);//Avtiva la funcionalidad para trabajar el canal alfa -----------------------------------------------
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+	 //   Dog.Draw(lightingShader);
+		//glDisable(GL_BLEND);  //Desactiva el canal alfa ---------------------------------------------
+		//glBindVertexArray(0);
+		*/
 
 		// Also draw the lamp object, again binding the appropriate shader
 		lampShader.Use();
@@ -389,7 +619,8 @@ int main()
 		}
 		glBindVertexArray(0);
 
-
+		chamaca.Draw(lightingShader);
+		glBindVertexArray(0);
 
 		// Swap the screen buffers
 		glfwSwapBuffers(window);
@@ -409,7 +640,7 @@ void DoMovement()
 {
 
 	// Camera controls
-	if (keys[GLFW_KEY_W] || keys[GLFW_KEY_UP])
+	/*if (keys[GLFW_KEY_W] || keys[GLFW_KEY_UP])
 	{
 		camera.ProcessKeyboard(FORWARD, deltaTime);
 
@@ -434,7 +665,7 @@ void DoMovement()
 		camera.ProcessKeyboard(RIGHT, deltaTime);
 
 
-	}
+	}*/
 
 	if (keys[GLFW_KEY_T])
 	{
@@ -485,19 +716,18 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 	}
 
-	if (keys[GLFW_KEY_SPACE])
-	{
-		active = !active;
-		if (active)
-		{
-			Light1 = glm::vec3(1.0f, 1.0f, 0.0f);
-		}
-		else
-		{
-			Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
-		}
-	}
-
+	//if (keys[GLFW_KEY_SPACE])
+	//{
+	//	active = !active;
+	//	if (active)
+	//	{
+	//		Light1 = glm::vec3(1.0f, 1.0f, 0.0f);
+	//	}
+	//	else
+	//	{
+	//		Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
+	//	}
+	//}
 	if (keys[GLFW_KEY_1])
 	{
 		activeSun = !activeSun;
@@ -522,3 +752,5 @@ void MouseCallback(GLFWwindow* window, double xPos, double yPos)
 
 	camera.ProcessMouseMovement(xOffset, yOffset);
 }
+
+
