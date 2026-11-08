@@ -7,6 +7,7 @@
 #include <map>
 #include <vector>
 
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,6 +16,11 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
+
+#include <BulletDynamics/Dynamics/btRigidBody.h>
+#include <BulletCollision/CollisionShapes/btTriangleMesh.h>
+#include <BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h>
+#include "LinearMath/btDefaultMotionState.h"
 
 #include "Mesh.h"
 #include  "Shader.h"
@@ -53,7 +59,6 @@ private:
 	void loadModel(string path)
 	{
 
-		// Usamos la API pura de C para evitar el choque de ABI
 		const aiScene* scene = aiImportFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 
 		// Check for errors
@@ -250,13 +255,20 @@ GLint TextureFromFile(const char *path, string directory)
 	GLuint textureID;
 	glGenTextures(1, &textureID);
 
-	int width, height;
+	int width, height, channels;
 
-	unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
+	unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
+
+	GLenum format = GL_RGB;
+	if (channels == 4) { 
+		format =  GL_RGBA;
+	}
 
 	// Assign texture to ID
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
 	// Parameters
@@ -268,4 +280,60 @@ GLint TextureFromFile(const char *path, string directory)
 	SOIL_free_image_data(image);
 
 	return textureID;
+}
+
+btRigidBody* LoadRigidCollition(const std::string& rutaArchivo)
+{
+	// 1. Usar Assimp solo para leer los polígonos (forzamos triangulación)
+	const aiScene* scene = aiImportFile(rutaArchivo.c_str(), aiProcess_Triangulate);
+
+	if (!scene || !scene->mRootNode) {
+		std::cout << "Error al cargar colision: " << aiGetErrorString() << std::endl;
+		return nullptr;
+	}
+
+	// 2. Crear el contenedor de triángulos de Bullet
+	btTriangleMesh* trimesh = new btTriangleMesh();
+
+	// 3. Extraer la geometría de TODAS las mallas dentro del archivo
+	for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
+		aiMesh* mesh = scene->mMeshes[m];
+
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+			aiFace face = mesh->mFaces[i];
+
+			// Si es un triángulo, lo enviamos a Bullet
+			if (face.mNumIndices == 3) {
+				aiVector3D v0 = mesh->mVertices[face.mIndices[0]];
+				aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
+				aiVector3D v2 = mesh->mVertices[face.mIndices[2]];
+
+				trimesh->addTriangle(
+					btVector3(v0.x, v0.y, v0.z),
+					btVector3(v1.x, v1.y, v1.z),
+					btVector3(v2.x, v2.y, v2.z),
+					true // true optimiza vértices duplicados
+				);
+			}
+		}
+	}
+
+	// 4. Liberar Assimp de la memoria (ya tenemos los datos en Bullet)
+	aiReleaseImport(scene);
+
+	// 5. Crear el cuerpo estático de Bullet (Masa 0)
+	btBvhTriangleMeshShape* terrainShape = new btBvhTriangleMeshShape(trimesh, true);
+
+	btTransform transform;
+	transform.setIdentity();
+	transform.setOrigin(btVector3(0, 0, 0)); // El origen debe coincidir con el modelo visual
+
+	btDefaultMotionState* motionState = new btDefaultMotionState(transform);
+	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, motionState, terrainShape, btVector3(0, 0, 0));
+
+	btRigidBody* terrainBody = new btRigidBody(rbInfo);
+	// Quitar fricción si no quieres que la cápsula se atore en las pendientes
+	terrainBody->setFriction(0.0f);
+
+	return terrainBody;
 }
