@@ -257,7 +257,7 @@ int main()
 	glfwSetCursorPosCallback(window, MouseCallback);
 
 	// GLFW Options
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
@@ -276,10 +276,19 @@ int main()
 
 	//Model Dog((char*)"Models/RedDog.obj");
 	Model Dog((char*)"Models/ball.obj");
-	Model Piso((char*)"Models/piso.obj");
+	Model Piso((char*)"Models/sand.obj");
+	Model PisoPlaya((char*)"Models/sand.obj");
 
+	//Model chamaca((char*)"Models/MeinGott.glb");
 	Model chamaca((char*)"Models/MeinGott.obj");
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
+
+
+
+	//Cargas de Colisiones Personalizadas
+	btRigidBody* PlayaCollision{ LoadRigidCollition("Models/sand_Col.obj") };
+	if (PlayaCollision) { dynamicsWorld->addRigidBody(PlayaCollision); }
+
 
 
 	// First, set the container's VAO (and VBO)
@@ -351,6 +360,28 @@ int main()
 			// Si no lo despiertas, el jugador se congelará tras unos segundos inactivo.
 			playerBody->activate(true);
 		}
+
+
+		// 4.5 Lógica de Salto con Raycast
+		btVector3 startPos = playerBody->getWorldTransform().getOrigin();
+		// Disparamos un rayo hacia abajo. 
+		// La cápsula mide 2.0 de alto (1.0 de centro a pies) + 0.1 extra de margen para detectar el suelo
+		btVector3 endPos = startPos - btVector3(0.0f, 1.4f, 0.0f);
+
+		btCollisionWorld::ClosestRayResultCallback rayCallback(startPos, endPos);
+		dynamicsWorld->rayTest(startPos, endPos, rayCallback);
+
+		bool isFalling = !rayCallback.hasHit();
+
+		if (keys[GLFW_KEY_SPACE] && !isFalling/*abs(currentVelocity.getY()) < 0.01f*/) {
+			targetVelocity.setY(7.5f); // Fuerza/Altura del salto
+
+			// "Consumimos" el input artificialmente para que no salga volando 
+			// como un jetpack si mantienes la barra espaciadora presionada.
+			keys[GLFW_KEY_SPACE] = false;
+		}
+
+
 
 		// 5. Inyectar la velocidad final al colisionador
 		playerBody->setLinearVelocity(targetVelocity);
@@ -432,16 +463,16 @@ int main()
 		Son(activeSun, 0.01f, 10);
 
 		// Directional light
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);  //Direction  de
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), SunLight.x, SunLight.y, SunLight.z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
-
-
 		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);  //Direction  de
-		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"),0.01f,0.01f,0.01f);
+		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), SunLight.x, SunLight.y, SunLight.z);
 		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
-		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"),0.0f, 0.0f, 0.0f);
+		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
+
+
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);  //Direction  de
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"),1.0f,1.0f,1.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"),0.0f, 0.0f, 0.0f);
 
 
 		//Point light 1
@@ -529,9 +560,11 @@ int main()
 		// 2. Dibujar el Piso (Estático)
 		glm::mat4 modelPiso = glm::mat4(1.0f);
 		// La física del suelo la pusiste en Y = -1.0f, así que bajamos el modelo visual para que coincidan
-		modelPiso = glm::translate(modelPiso, glm::vec3(0.0f, -1.0f, 0.0f));
+		modelPiso = glm::translate(modelPiso, glm::vec3(0.0f, /*-1.0f*/0.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiso));
 		Piso.Draw(lightingShader);
+		//PisoPlaya.Draw(lightingShader);
+
 
 
 		//btTransform trans;
@@ -548,9 +581,6 @@ int main()
 		PlayerModel = glm::scale(PlayerModel, glm::vec3(0.21f, 0.21f, 0.21f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(PlayerModel));
 		chamaca.Draw(lightingShader);
-
-
-
 
 		// (Opcional: Dibujar tu cubo del VAO estático en el origen)
 		glm::mat4 modelCubo = glm::mat4(1.0f);
@@ -569,6 +599,9 @@ int main()
 		Dog.Draw(lightingShader);
 
 		glDisable(GL_BLEND);
+
+
+
 
 		/*
 		//      view = camera.GetViewMatrix();
