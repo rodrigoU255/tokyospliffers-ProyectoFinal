@@ -282,10 +282,10 @@ GLint TextureFromFile(const char *path, string directory)
 	return textureID;
 }
 
-btRigidBody* LoadRigidCollition(const std::string& rutaArchivo)
+btRigidBody* LoadRigidCollition(const std::string& path, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
 	// 1. Usar Assimp solo para leer los polígonos (forzamos triangulación)
-	const aiScene* scene = aiImportFile(rutaArchivo.c_str(), aiProcess_Triangulate);
+	const aiScene* scene = aiImportFile(path.c_str(), aiProcess_Triangulate);
 
 	if (!scene || !scene->mRootNode) {
 		std::cout << "Error al cargar colision: " << aiGetErrorString() << std::endl;
@@ -324,9 +324,20 @@ btRigidBody* LoadRigidCollition(const std::string& rutaArchivo)
 	// 5. Crear el cuerpo estático de Bullet (Masa 0)
 	btBvhTriangleMeshShape* terrainShape = new btBvhTriangleMeshShape(trimesh, true);
 
+	terrainShape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
+
+
 	btTransform transform;
 	transform.setIdentity();
-	transform.setOrigin(btVector3(0, 0, 0)); // El origen debe coincidir con el modelo visual
+	//transform.setOrigin(btVector3(0, 0, 0)); // El origen debe coincidir con el modelo visual
+	transform.setOrigin(btVector3(position.x, position.y, position.z)); // El origen debe coincidir con el modelo visual
+
+
+	btQuaternion rot;
+	//rot.setEuler(glm::radians(rotation.y), glm::radians(rotation.x), glm::radians(rotation.z)); // Para en radianes
+	rot.setEuler(rotation.y, rotation.x, rotation.z); // En euler
+	transform.setRotation(rot);
+
 
 	btDefaultMotionState* motionState = new btDefaultMotionState(transform);
 	btRigidBody::btRigidBodyConstructionInfo rbInfo(0.0f, motionState, terrainShape, btVector3(0, 0, 0));
