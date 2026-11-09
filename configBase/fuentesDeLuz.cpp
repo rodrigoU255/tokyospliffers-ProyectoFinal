@@ -57,6 +57,7 @@ bool firstMouse = true;
 glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 bool active;
 bool activeSun{ false };
+bool bIsFirstPerson{ false }; 
 
 // Positions of the point lights
 //Arreglo de luces puntuales
@@ -279,6 +280,8 @@ int main()
 	Model Piso((char*)"Models/sand.obj");
 	Model PisoPlaya((char*)"Models/sand.obj");
 
+	Model SkyBox((char*)"Models/skysphere.obj");
+
 	//Model chamaca((char*)"Models/MeinGott.glb");
 	Model chamaca((char*)"Models/MeinGott.obj");
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
@@ -286,8 +289,8 @@ int main()
 
 
 	//Cargas de Colisiones Personalizadas
-	btRigidBody* PlayaCollision{ LoadRigidCollition("Models/sand_Col.obj", glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) }; 
-																	//ruta del modelo de colision, traslaciones, rotaciones y escalas para la colision
+	btRigidBody* PlayaCollision{ LoadRigidCollition("Models/sand_Col.obj", glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
+	//ruta del modelo de colision, traslaciones, rotaciones y escalas para la colision
 	if (PlayaCollision) { dynamicsWorld->addRigidBody(PlayaCollision); }
 
 
@@ -313,7 +316,8 @@ int main()
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.difuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.specular"), 1);
 
-	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.21f, 10000.0f); //Renderizado a objetos mas lejanos
+	//glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -415,7 +419,8 @@ int main()
 		btVector3 pos = trans.getOrigin();
 
 		// Calcular una posición para la cámara (ej. 3 metros atrás y 2 metros arriba del personaje)
-		glm::vec3 offset = (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 offset = bIsFirstPerson ? glm::vec3(0.0f,0.8f,0.0f) : (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
+		//glm::vec3 offset = (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 targetCameraPos = glm::vec3(pos.x(), pos.y(), pos.z()) + offset;
 
 		// Tu clase Camera asume tener un método o propiedad para asignar la posición.
@@ -473,9 +478,9 @@ int main()
 
 
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);  //Direction  de
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"),1.0f,1.0f,1.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 1.0f, 1.0f, 1.0f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"),0.0f, 0.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
 
 
 		//Point light 1
@@ -567,7 +572,7 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiso));
 		Piso.Draw(lightingShader);
 		//PisoPlaya.Draw(lightingShader);
-
+		SkyBox.Draw(lightingShader);
 
 
 		//btTransform trans;
@@ -766,7 +771,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	//}
 	if (keys[GLFW_KEY_1])
 	{
-		activeSun = !activeSun;
+		bIsFirstPerson = !bIsFirstPerson;
 	}
 
 }

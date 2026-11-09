@@ -50,7 +50,8 @@ public:
 		this->updateCameraVectors();
 	}
 
-	// Returns the view matrix calculated using Eular Angles and the LookAt Matrix
+	// Returns the 
+	// matrix calculated using Eular Angles and the LookAt Matrix
 	glm::mat4 GetViewMatrix()
 	{
 		return glm::lookAt(this->position, this->position + this->front, this->up);
