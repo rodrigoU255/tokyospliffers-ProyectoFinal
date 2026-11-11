@@ -56,7 +56,8 @@ bool firstMouse = true;
 // Light attributes
 glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 bool active;
-bool activeSun{ false };
+
+float player_rotation {135.0f};
 bool bIsFirstPerson{ false }; 
 
 // Positions of the point lights
@@ -128,28 +129,6 @@ GLfloat lastFrame = 0.0f;  	// Time of last frame
 GLfloat TotaldeltaTimes{ 0.0f };
 
 
-void Son(bool bIsActiveSun, float cuanto, GLfloat cuanto_tiempo) {
-	if (!bIsActiveSun) { return; }
-
-	if (TotaldeltaTimes >= cuanto_tiempo / 2) {
-
-		if (IsNight) {
-			SunLight.x += cuanto * TotaldeltaTimes;
-			SunLight.y += cuanto * TotaldeltaTimes;
-			SunLight.z += cuanto * TotaldeltaTimes;
-		}
-		else {
-			SunLight.x -= cuanto * TotaldeltaTimes;
-			SunLight.y -= cuanto * TotaldeltaTimes;
-			SunLight.z -= cuanto * TotaldeltaTimes;
-		}
-	}
-	if (TotaldeltaTimes >= cuanto_tiempo) {
-		TotaldeltaTimes = 0;
-		IsNight = !IsNight;
-	}
-
-}
 
 int main()
 {
@@ -468,8 +447,6 @@ int main()
 		glUniform3f(viewPosLoc, camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
 
 
-		Son(activeSun, 0.01f, 10);
-
 		// Directional light
 		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);  //Direction  de
 		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), SunLight.x, SunLight.y, SunLight.z);
@@ -583,7 +560,12 @@ int main()
 
 		// Compensación visual: Bajamos el modelo la mitad de la altura total de la cápsula (1.0 unidad) 
 		// para que los pies del modelo visual toquen el fondo del colisionador invisible.
-		PlayerModel = glm::rotate(PlayerModel, 135.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		
+		if (glm::length(moveDir)>0.2f) {
+			player_rotation = atan2f(moveDir.x, moveDir.z);
+		}
+
+		PlayerModel = glm::rotate(PlayerModel, player_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
 		//PlayerModel = glm::rotate(PlayerModel, 135.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 		PlayerModel = glm::translate(PlayerModel, glm::vec3(0.0f, -1.0f, 0.0f));
 		PlayerModel = glm::scale(PlayerModel, glm::vec3(0.21f, 0.21f, 0.21f));
