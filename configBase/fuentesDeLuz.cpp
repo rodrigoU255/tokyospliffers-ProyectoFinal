@@ -277,8 +277,8 @@ int main()
 	Model PRun5((char*)"Models/Player/PlayerRun5.obj");
 	Model PRun6((char*)"Models/Player/PlayerRun6.obj");
 	
-	std::vector<Model> RunModels{ PRun1,PRun2,PRun3,PRun4,PRun5,PRun6 };
-	std::vector<int> Run_keyposes{ 0, 2, 8, 11, 13 , 18 ,20 };
+	std::vector<Model> RunModels{ PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
+	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20 };
 
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
@@ -866,8 +866,8 @@ void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& M
 		return;
 	}
 
-	for (int i{ 0 }; i < keyposes.size() ; i++) {
-		if (current_animation_time > choppedtime * keyposes[i] && current_animation_time <= choppedtime * keyposes[i + 1]) {
+	for (int i{ 0 }; i < keyposes.size() -1; i++) {
+		if (current_animation_time >= choppedtime * keyposes[i] && current_animation_time <= choppedtime * keyposes[i + 1]) {
 			Models[i].Draw(shader);
 		}
 	}
