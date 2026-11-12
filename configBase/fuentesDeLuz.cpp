@@ -267,7 +267,7 @@ int main()
 	Model chamaca((char*)"Models/MeinGott.obj");
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
-	Model Gradas((char*)"Models/Stands.obj");
+	Model Gradas((char*)"Models/Stands/Stands.obj");
 	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
 
 
@@ -414,7 +414,7 @@ int main()
 		btVector3 pos = trans.getOrigin();
 
 		// Calcular una posición para la cámara (ej. 3 metros atrás y 2 metros arriba del personaje)
-		glm::vec3 offset = bIsFirstPerson ? glm::vec3(0.0f,0.8f,0.0f) : (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
+		glm::vec3 offset = bIsFirstPerson ? glm::vec3(0.0f, 0.8f, 0.0f) : (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		//glm::vec3 offset = (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 targetCameraPos = glm::vec3(pos.x(), pos.y(), pos.z()) + offset;
 
@@ -584,8 +584,8 @@ int main()
 
 		// Compensación visual: Bajamos el modelo la mitad de la altura total de la cápsula (1.0 unidad) 
 		// para que los pies del modelo visual toquen el fondo del colisionador invisible.
-		
-		if (glm::length(moveDir)>0.2f) {
+
+		if (glm::length(moveDir) > 0.2f) {
 			player_rotation = atan2f(moveDir.x, moveDir.z);
 		}
 
@@ -606,20 +606,28 @@ int main()
 
 		// Gradas (Stands.obj)
 		glm::mat4 modelGradas = glm::mat4(1.0f);
-		modelGradas = glm::translate(modelGradas, glm::vec3(0.0f, -0.5f, -10.0f));
-		// modelGradas = glm::rotate(modelGradas, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelGradas = glm::scale(modelGradas, glm::vec3(1.3f, 1.3f, 1.3f));
+		modelGradas = glm::translate(modelGradas, glm::vec3(7.50f, 0.05f, 15.0f));
+		modelGradas = glm::rotate(modelGradas, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelGradas = glm::scale(modelGradas, glm::vec3(1.75f, 1.75f, 1.75f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGradas));
 		Gradas.Draw(lightingShader);
+		
+		// Gradas2 (Stands.obj)
+		glm::mat4 modelGradas2 = glm::mat4(1.0f);
+		modelGradas2 = glm::translate(modelGradas2, glm::vec3(4.5f, 0.05f, 27.5f));
+		modelGradas2 = glm::rotate(modelGradas2, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelGradas2 = glm::scale(modelGradas2, glm::vec3(1.75f, 1.75f, 1.75f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGradas2));
+		Gradas.Draw(lightingShader);
+
 
 		// Cancha (Voleyball_Court.obj)
 		glm::mat4 modelCancha = glm::mat4(1.0f);
-		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.0f, 0.0f));
+		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.005f, 15.0f));
 		modelCancha = glm::scale(modelCancha, glm::vec3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
 
-		glDisable(GL_BLEND);
 
 
 		// 3. Dibujar el Balón/Dog (Dinámico)
@@ -632,7 +640,6 @@ int main()
 		Dog.Draw(lightingShader);
 
 		glDisable(GL_BLEND);
-
 
 
 
