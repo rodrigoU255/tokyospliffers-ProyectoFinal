@@ -268,8 +268,7 @@ int main()
 	//Model chamaca((char*)"Models/MeinGott.glb");
 	Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
 	
-
-
+	
 	//Model PRun1((char*)"Models/Player/PlayerRun1.obj");
 	//Model PRun2((char*)"Models/Player/PlayerRun2.obj");
 	//Model PRun3((char*)"Models/Player/PlayerRun3.obj");
@@ -285,9 +284,16 @@ int main()
 
 	Model Gradas((char*)"Models/Stands/Stands.obj");
 	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
-
 	Model Gimnasio((char*)"Models/Gymnasium/gymnasium.obj");
 	Model Salvavidas((char*)"Models/Lifeguard/lifeguard.obj");
+	Model Silla1((char*)"Models/Beach_Chairs/chair1.obj");
+	Model Silla2((char*)"Models/Beach_Chairs/chair2.obj");
+	Model Sombrilla((char*)"Models/Umbrella/umbrella.obj");
+	Model Edificio((char*)"Models/Edificio/Edificio.obj");
+
+
+
+
 
 	
 
@@ -668,14 +674,67 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGimnasio));
 		Gimnasio.Draw(lightingShader);
 
-
 		// Salvavidas (lifeguard.obj)
 		glm::mat4 modelSalvavidas = glm::mat4(1.0f);
 		modelSalvavidas = glm::translate(modelSalvavidas, glm::vec3(-10.0f, -1.25f, -15.0f));
 		//modelSalvavidas = glm::rotate(modelSalvavidas, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelSalvavidas = glm::scale(modelSalvavidas, glm::vec3(1.0f, 1.0f, 1.0f));
+		modelSalvavidas = glm::scale(modelSalvavidas, glm::vec3(1.25f, 1.25f, 1.25f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSalvavidas));
 		Salvavidas.Draw(lightingShader);
+
+		// Sombrilla (umbrella.obj)
+		glm::mat4 modelSombrilla = glm::mat4(1.0f);
+		modelSombrilla = glm::translate(modelSombrilla, glm::vec3(8.0f, -1.75f, -15.0f));
+		modelSombrilla = glm::scale(modelSombrilla, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSombrilla));
+		Sombrilla.Draw(lightingShader);
+
+		// Silla1 (chair1.obj) Café
+		glm::mat4 modelSilla1 = glm::mat4(1.0f);
+		modelSilla1 = glm::translate(modelSilla1, glm::vec3(10.0f, -1.75f, -15.0f));
+		modelSilla1 = glm::rotate(modelSilla1, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelSilla1 = glm::scale(modelSilla1, glm::vec3(1.1f, 1.1f, 1.1f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla1));
+		Silla1.Draw(lightingShader);
+
+		// Silla2 (chair2.obj) Azul
+		glm::mat4 modelSilla2 = glm::mat4(1.0f);
+		modelSilla2 = glm::translate(modelSilla2, glm::vec3(6.0f, -1.50f, -15.0f));
+		modelSilla2 = glm::rotate(modelSilla2, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelSilla2 = glm::scale(modelSilla2, glm::vec3(1.25f, 1.25f, 1.25f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla2));
+		Silla2.Draw(lightingShader);
+
+		
+		modelSombrilla = glm::mat4(1.0f);
+		modelSombrilla = glm::translate(modelSombrilla, glm::vec3(-2.0f, -1.5f, -15.0f));
+		modelSombrilla = glm::scale(modelSombrilla, glm::vec3(0.4f, 0.4f, 0.4f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSombrilla));
+		Sombrilla.Draw(lightingShader);
+
+		modelSilla1 = glm::mat4(1.0f);
+		modelSilla1 = glm::translate(modelSilla1, glm::vec3(0.0f, -1.25f, -15.0f));
+		modelSilla1 = glm::rotate(modelSilla1, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelSilla1 = glm::scale(modelSilla1, glm::vec3(1.1f, 1.1f, 1.1f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla1));
+		Silla1.Draw(lightingShader);
+
+		modelSilla2 = glm::mat4(1.0f);
+		modelSilla2 = glm::translate(modelSilla2, glm::vec3(2.0f, -1.25f, -15.0f));
+		modelSilla2 = glm::rotate(modelSilla2, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelSilla2 = glm::rotate(modelSilla2, glm::radians(05.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+		modelSilla2 = glm::scale(modelSilla2, glm::vec3(1.25f, 1.25f, 1.25f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla2));
+		Silla2.Draw(lightingShader);
+
+		// Edificio (Edificio.obj)
+		glm::mat4 modelE = glm::mat4(1.0f);
+		modelE = glm::translate(modelE, glm::vec3(-15.0f, 0.05f, 35.0f));
+		modelE = glm::rotate(modelE, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelE = glm::scale(modelE, glm::vec3(0.035f, 0.035f, 0.035f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelE));
+		Edificio.Draw(lightingShader);
+
 
 
 		// 3. Dibujar el Balón/Dog (Dinámico)
