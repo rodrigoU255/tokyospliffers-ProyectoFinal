@@ -41,7 +41,7 @@
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void MouseCallback(GLFWwindow* window, double xPos, double yPos);
 void DoMovement();
-
+void Animation();
 
 
 GLfloat current_animation_time{};
@@ -123,6 +123,22 @@ float vertices[] = {
 
 glm::vec3 Light1 = glm::vec3(0);
 
+
+//Anim
+float rotBall = 0.0f;
+bool AnimBall = false;
+bool AnimDog = false;
+float rotDog = 0.0f;
+int dogAnim = 0;
+float FLegs = 0.0f;
+float RLegs = 0.0f;
+float head = 0.0f;
+float tail = 0.0f;
+glm::vec3 dogPos(0.0f, 0.5f, 3.0f);
+float dogRot = 0.0f;
+float rotate_dog = 0.0f;
+bool step = false;
+bool rotated{ false };
 
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -279,6 +295,13 @@ int main()
 	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/};
 	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */};
 
+	Model DogBody((char*)"Models/DogBody.obj");
+	Model HeadDog((char*)"Models/HeadDog.obj");
+	Model DogTail((char*)"Models/TailDog.obj");
+	Model F_RightLeg((char*)"Models/F_RightLegDog.obj");
+	Model F_LeftLeg((char*)"Models/F_LeftLegDog.obj");
+	Model B_RightLeg((char*)"Models/B_RightLegDog.obj");
+	Model B_LeftLeg((char*)"Models/B_LeftLegDog.obj");
 
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
@@ -291,7 +314,8 @@ int main()
 	Model Sombrilla((char*)"Models/Umbrella/umbrella.obj");
 	Model Edificio((char*)"Models/Edificio/Edificio.obj");
 
-
+	Model Sea((char*)"Models/sea.obj");
+	Model Mountein((char*)"Models/mounteindew.obj");
 
 
 
@@ -312,6 +336,13 @@ int main()
 	//ruta del modelo de colision, traslaciones, rotaciones y escalas para la colision
 	if (PlayaCollision) { dynamicsWorld->addRigidBody(PlayaCollision); }
 
+
+	btRigidBody* MounteinCollision{ LoadRigidCollition("Models/mounteindew.obj", glm::vec3(-120.0f, -1.0f, -20.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
+	if (MounteinCollision) { dynamicsWorld->addRigidBody(MounteinCollision); }
+
+
+	btRigidBody* SeaCollision{ LoadRigidCollition("Models/sea.obj", glm::vec3(0.0f,-3.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
+	if (SeaCollision) { dynamicsWorld->addRigidBody(SeaCollision); }
 
 
 
@@ -352,6 +383,8 @@ int main()
 
 		glfwPollEvents();
 		DoMovement();
+		Animation();
+
 
 		//----------------------------------------------------------------------------------------------------
 
@@ -644,12 +677,75 @@ int main()
 			chamaca.Draw(lightingShader);
 		}
 		
-		// (Opcional: Dibujar tu cubo del VAO estático en el origen)
-		glm::mat4 modelCubo = glm::mat4(1.0f);
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
+		//// (Opcional: Dibujar tu cubo del VAO estático en el origen)
+		//glm::mat4 modelCubo = glm::mat4(1.0f);
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
+		//glBindVertexArray(VAO);
+		//glDrawArrays(GL_TRIANGLES, 0, 36);
+		//glBindVertexArray(0);
+
+
+		//Body
+		glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
+
+		glm::mat4 modelDog = glm::mat4(1.0f);
+		
+		modelTemp = modelDog = glm::translate(modelDog, dogPos);
+		modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		DogBody.Draw(lightingShader);
+		//Head
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.093f, 0.208f));
+		modelDog = glm::rotate(modelDog, glm::radians(head), glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		HeadDog.Draw(lightingShader);
+		//Tail 
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.026f, -0.288f));
+		modelDog = glm::rotate(modelDog, glm::radians(tail), glm::vec3(0.0f, 0.0f, -1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		DogTail.Draw(lightingShader);
+		//Front Left Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.112f, -0.044f, 0.074f));
+		modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		F_LeftLeg.Draw(lightingShader);
+		//Front Right Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(-0.111f, -0.055f, 0.074f));
+		modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		F_RightLeg.Draw(lightingShader);
+		//Back Left Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.082f, -0.046, -0.218));
+		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		B_LeftLeg.Draw(lightingShader);
+		//Back Right Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(-0.083f, -0.057f, -0.231f));
+		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		B_RightLeg.Draw(lightingShader);
+
+
+
+
+
+		// Sea (sea.obj)
+		glm::mat4 modelSea = glm::mat4(1.0f);
+		modelSea = glm::translate(modelSea, glm::vec3(0.0f, -2.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSea));
+		Sea.Draw(lightingShader);
+
+		//Mountein (mounteindew.obj)
+		glm::mat4 modelMountein = glm::mat4(1.0f);
+		modelMountein = glm::translate(modelMountein, glm::vec3(100.0f, -2.0f, 120.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMountein));
+		Mountein.Draw(lightingShader);
 
 		// Gradas (Stands.obj)
 		glm::mat4 modelGradas = glm::mat4(1.0f);
@@ -808,7 +904,6 @@ int main()
 		}
 		glBindVertexArray(0);
 
-		chamaca.Draw(lightingShader);
 		glBindVertexArray(0);
 
 		// Swap the screen buffers
@@ -905,6 +1000,12 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		}
 	}
 
+	if (keys[GLFW_KEY_P])
+	{
+		AnimDog = !AnimDog;
+
+	}
+
 	//if (keys[GLFW_KEY_SPACE])
 	//{
 	//	active = !active;
@@ -942,6 +1043,39 @@ void MouseCallback(GLFWwindow* window, double xPos, double yPos)
 	camera.ProcessMouseMovement(xOffset, yOffset);
 }
 
+
+void Animation() {
+	if (AnimBall)
+	{
+		rotBall += 0.4f;
+		//printf("%f", rotBall);
+	}
+
+	float quantity{ 0.5f };
+
+
+	if (AnimDog) {
+		
+
+		dogPos.z += 0.005f;
+
+
+		if (!step) {
+			RLegs -= quantity;
+			FLegs -= quantity;
+			head -= quantity;
+			tail -= quantity;
+			if (RLegs <= -15.0f) { step = !step; }
+		}
+		else {
+			RLegs += quantity;
+			FLegs += quantity;
+			head += quantity;
+			tail += quantity;
+			if (RLegs >= 15.0f) { step = !step; }
+		}
+	}
+}
 
 void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& Models, const Shader& shader, const bool condition) {
 
