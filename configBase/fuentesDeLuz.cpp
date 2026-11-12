@@ -228,6 +228,8 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+
+
 	glfwMakeContextCurrent(window);
 
 	glfwGetFramebufferSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
@@ -265,10 +267,24 @@ int main()
 	Model chamaca((char*)"Models/MeinGott.obj");
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
+	Model Gradas((char*)"Models/Stands.obj");
+	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
+
+
+
+
+	// Al chile no se Bravo administración
+	// --- Cargar Colisión Estática con Bullet Physics ---
+	// Parámetros: Ruta, Posición (X,Y,Z), Rotación (X,Y,Z), Escala (X,Y,Z)
+	btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
+	if (GradasCollision) {
+		dynamicsWorld->addRigidBody(GradasCollision);
+	}
+
 
 
 	//Cargas de Colisiones Personalizadas
-	btRigidBody* PlayaCollision{ LoadRigidCollition("Models/sand_Col.obj", glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
+	btRigidBody* PlayaCollision{ LoadRigidCollition("Models/sand.obj", glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
 	//ruta del modelo de colision, traslaciones, rotaciones y escalas para la colision
 	if (PlayaCollision) { dynamicsWorld->addRigidBody(PlayaCollision); }
 
@@ -538,6 +554,13 @@ int main()
 
 		//Carga de modelo 
 
+
+
+
+
+
+
+
 		// 1. Configurar vista y matrices generales
 		//view = camera.GetViewMatrix();
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -550,6 +573,7 @@ int main()
 		Piso.Draw(lightingShader);
 		//PisoPlaya.Draw(lightingShader);
 		SkyBox.Draw(lightingShader);
+
 
 
 		//btTransform trans;
@@ -578,6 +602,25 @@ int main()
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
+
+
+		// Gradas (Stands.obj)
+		glm::mat4 modelGradas = glm::mat4(1.0f);
+		modelGradas = glm::translate(modelGradas, glm::vec3(0.0f, -0.5f, -10.0f));
+		// modelGradas = glm::rotate(modelGradas, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelGradas = glm::scale(modelGradas, glm::vec3(1.3f, 1.3f, 1.3f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGradas));
+		Gradas.Draw(lightingShader);
+
+		// Cancha (Voleyball_Court.obj)
+		glm::mat4 modelCancha = glm::mat4(1.0f);
+		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.0f, 0.0f));
+		modelCancha = glm::scale(modelCancha, glm::vec3(1.0f, 1.0f, 1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
+		CanchaVolley.Draw(lightingShader);
+
+		glDisable(GL_BLEND);
+
 
 		// 3. Dibujar el Balón/Dog (Dinámico)
 		glEnable(GL_BLEND);
