@@ -747,6 +747,13 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMountein));
 		Mountein.Draw(lightingShader);
 
+		modelMountein = glm::mat4(1.0f);
+		modelMountein = glm::translate(modelMountein, glm::vec3(-120.0f, -1.0f, 20.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMountein));
+		Mountein.Draw(lightingShader);
+
+
+
 		// Gradas (Stands.obj)
 		glm::mat4 modelGradas = glm::mat4(1.0f);
 		modelGradas = glm::translate(modelGradas, glm::vec3(7.50f, 0.05f, 15.0f));
