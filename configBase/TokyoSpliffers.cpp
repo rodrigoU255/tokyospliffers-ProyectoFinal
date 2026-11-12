@@ -42,6 +42,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 void MouseCallback(GLFWwindow* window, double xPos, double yPos);
 void DoMovement();
 void Animation();
+void AnimationKeyFrames();
+void interpolation();
+void resetElements();
+
 
 
 GLfloat current_animation_time{};
@@ -66,8 +70,6 @@ float player_rotation{ 135.0f };
 bool bIsFirstPerson{ false };
 bool bIsRunning{ false };
 
-// Positions of the point lights
-//Arreglo de luces puntuales
 glm::vec3 pointLightPositions[] = {
 	glm::vec3(3.7f, 4.0f, 15.0f),
 	glm::vec3(-3.65f, 4.0f, 15.0f),
@@ -153,6 +155,46 @@ GLfloat lastFrame = 0.0f;  	// Time of last frame
 
 GLfloat TotaldeltaTimes{ 0.0f };
 
+float arbitroPosX = 0.0f, arbitroPosY = 0.0f, arbitroPosZ = 0.0f;
+float rotArbitro = 0.0f;
+
+// Ángulos de las extremidades y torso
+float anguloTorsoY = 0.0f;
+float anguloBrazoIzq = 0.0f;
+float anguloBicepD = 0.0f;
+float anguloCodoD = 0.0f;
+float anguloAnteBrazoD = 0.0f;
+float anguloManoD = 0.0f;
+float anguloDedos = 0.0f;
+
+// --- ESTRUCTURA DE KEYFRAMES ---
+#define MAX_FRAMES 15
+int i_max_steps = 50;
+int i_curr_steps = 0;
+
+typedef struct _frame
+{
+	// Posición y rotación global
+	float arbitroPosX, arbitroPosY, arbitroPosZ;
+	float incX, incY, incZ;
+	float rotArbitro, rotArbitroInc;
+
+	// Articulaciones del árbitro
+	float anguloTorsoY, incAnguloTorsoY;
+	float anguloBrazoIzq, incAnguloBrazoIzq;
+	float anguloBicepD, incAnguloBicepD;
+	float anguloCodoD, incAnguloCodoD;
+	float anguloAnteBrazoD, incAnguloAnteBrazoD;
+	float anguloManoD, incAnguloManoD;
+	float anguloDedos, incAnguloDedos;
+}
+FRAME;
+
+FRAME KeyFrame[MAX_FRAMES];
+int FrameIndex = 0;
+bool play = false;
+int playIndex = 0;
+
 
 
 int main()
@@ -166,57 +208,37 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);*/
 
-	//------------------------------------------------------------------------------------------------------------------------------------
-	// 1. Configuraci�n de colisiones predeterminada
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
-
-	// 2. Despachador de colisiones (maneja los algoritmos de choque)
 	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
-
-	// 3. Broadphase (optimiza qu� objetos pueden chocar antes de calcularlos con precisi�n)
 	btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
-
-	// 4. Solucionador de restricciones (gravedad, fuerzas, articulaciones)
 	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
-
-	// 5. El Mundo F�sico Din�mico
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
-
-	// Configurar la gravedad (eje Y hacia abajo)
 	dynamicsWorld->setGravity(btVector3(0, -9.81, 0));
-
-	// --- Crear el Suelo Est�tico (Caja delimitadora) ---
 	btCollisionShape* groundShape = new btBoxShape(btVector3(15.0f, 0.5f, 25.0f));
-	//btCollisionShape* groundShape = new btBoxShape(btVector3(50.0f, 1.0f, 50.0f));
 	btTransform groundTransform;
 	groundTransform.setIdentity();
 	groundTransform.setOrigin(btVector3(0, -1.9f, 0)); // Posici�n en Y
 
 	btDefaultMotionState* groundMotionState = new btDefaultMotionState(groundTransform);
-	// Al pasarle 0.0f de masa, Bullet sabe que el objeto NO se mueve (es est�tico)
+
 	btRigidBody::btRigidBodyConstructionInfo groundInfo(0.0f, groundMotionState, groundShape, btVector3(0, 0, 0));
 	btRigidBody* groundBody = new btRigidBody(groundInfo);
 	dynamicsWorld->addRigidBody(groundBody);
 
-	// --- Crear el Bal�n Din�mico (Esfera de colisi�n) ---
-	btCollisionShape* sphereShape = new btSphereShape(0.5f); // Radio de 1.0
+	btCollisionShape* sphereShape = new btSphereShape(0.25f); // Radio de 0.5
 	btTransform startTransform;
 	startTransform.setIdentity();
-	startTransform.setOrigin(btVector3(0, 20.0f, 0)); // Empieza cayendo desde 20 unidades arriba
+	startTransform.setOrigin(btVector3(0, 20.0f, 0));
 
 	btScalar mass = 1.0f;
 	btVector3 localInertia(0, 0, 0);
-	sphereShape->calculateLocalInertia(mass, localInertia); // Calcula c�mo debe rodar/rebotar
+	sphereShape->calculateLocalInertia(mass, localInertia); 
 
 	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(startTransform);
 	btRigidBody::btRigidBodyConstructionInfo sphereInfo(mass, sphereMotionState, sphereShape, localInertia);
 	btRigidBody* sphereBody = new btRigidBody(sphereInfo);
 	dynamicsWorld->addRigidBody(sphereBody);
 
-
-	//CHARRRRRRRRRRRRRRRR
-	// --- INICIALIZACI�N (Antes del while) ---
-// Radio de 0.5, Altura de la secci�n cil�ndrica de 1.0 (Altura total = 2.0 unidades)
 	btCollisionShape* playerShape = new btCapsuleShape(0.5f, 1.0f);
 
 	btScalar playerMass = 75.0f;
@@ -225,24 +247,17 @@ int main()
 
 	btTransform playerStartTransform;
 	playerStartTransform.setIdentity();
-	playerStartTransform.setOrigin(btVector3(0, 2.0f, 0)); // Posici�n inicial del jugador
+	playerStartTransform.setOrigin(btVector3(0, 2.0f, 0));
 	btDefaultMotionState* playerMotionState = new btDefaultMotionState(playerStartTransform);
 
 	btRigidBody::btRigidBodyConstructionInfo playerInfo(playerMass, playerMotionState, playerShape, playerInertia);
 	btRigidBody* playerBody = new btRigidBody(playerInfo);
 
-	// �CR�TICO! Bloquear ejes de rotaci�n X y Z. Solo permitimos giro sobre Y.
 	playerBody->setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
-	// Quitar fricci�n pura para no quedarse pegado a las paredes
 	playerBody->setFriction(0.0f);
 
 	dynamicsWorld->addRigidBody(playerBody);
 
-
-	//-------------------------------------------------------------------------------------------------------------------------------------
-
-
-	// Create a GLFWwindow object that we can use for GLFW's functions
 	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Toukyou Spliffers", nullptr, nullptr);
 
 	if (nullptr == window)
@@ -259,11 +274,10 @@ int main()
 
 	glfwGetFramebufferSize(window, &SCREEN_WIDTH, &SCREEN_HEIGHT);
 
-	// Set the required callback functions
 	glfwSetKeyCallback(window, KeyCallback);
 	glfwSetCursorPosCallback(window, MouseCallback);
 
-	// GLFW Options
+	// GLFW ptions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
@@ -354,8 +368,103 @@ int main()
 	Model Mountein((char*)"Models/mounteindew.obj");
 
 
+	//arbitro
+	Model TorsoPC((char*)"Models/arbitro/TorsoPC.obj");
+	Model brazoIzq((char*)"Models/arbitro/brazoIzq.obj");
+	Model BicepD((char*)"Models/arbitro/BicepD.obj");
+	Model codoD((char*)"Models/arbitro/codoD.obj");
+	Model AnteBrazoD((char*)"Models/arbitro/AnteBrazoD.obj");
+	Model manoD((char*)"Models/arbitro/manoD.obj");
+	Model dedosD1((char*)"Models/arbitro/dedosD1.obj");
+	Model dedosD2((char*)"Models/arbitro/dedosD2.obj");
 
 
+	// --- INICIALIZAR KEYFRAMES EN CERO ---
+	for (int i = 0; i < MAX_FRAMES; i++)
+	{
+		KeyFrame[i].arbitroPosX = 0; KeyFrame[i].arbitroPosY = 0; KeyFrame[i].arbitroPosZ = 0;
+		KeyFrame[i].rotArbitro = 0;
+		KeyFrame[i].incX = 0; KeyFrame[i].incY = 0; KeyFrame[i].incZ = 0; KeyFrame[i].rotArbitroInc = 0;
+		KeyFrame[i].anguloTorsoY = 0; KeyFrame[i].incAnguloTorsoY = 0;
+		KeyFrame[i].anguloBrazoIzq = 0; KeyFrame[i].incAnguloBrazoIzq = 0;
+		KeyFrame[i].anguloBicepD = 0; KeyFrame[i].incAnguloBicepD = 0;
+		KeyFrame[i].anguloCodoD = 0; KeyFrame[i].incAnguloCodoD = 0;
+		KeyFrame[i].anguloAnteBrazoD = 0; KeyFrame[i].incAnguloAnteBrazoD = 0;
+		KeyFrame[i].anguloManoD = 0; KeyFrame[i].incAnguloManoD = 0;
+		KeyFrame[i].anguloDedos = 0; KeyFrame[i].incAnguloDedos = 0;
+	}
+
+	// --- CONFIGURACIÓN MANUAL DE KEYFRAMES ---
+	FrameIndex = 0;
+
+	// KeyFrame 0 (Pose inicial de reposo)
+	KeyFrame[0].arbitroPosX = 0.0f; KeyFrame[0].arbitroPosY = 0.0f; KeyFrame[0].arbitroPosZ = 0.0f;
+	KeyFrame[0].rotArbitro = 0.0f;
+	KeyFrame[0].anguloTorsoY = 0.0f;
+	KeyFrame[0].anguloBrazoIzq = 0.0f;
+	KeyFrame[0].anguloBicepD = 0.0f;
+	KeyFrame[0].anguloCodoD = 0.0f;
+	KeyFrame[0].anguloAnteBrazoD = 0.0f;
+	KeyFrame[0].anguloManoD = 0.0f;
+	KeyFrame[0].anguloDedos = 0.0f;
+	FrameIndex++;
+
+	// KeyFrame 1 (Pose intermedia)
+	KeyFrame[1].arbitroPosX = 0.0f; KeyFrame[1].arbitroPosY = 0.0f; KeyFrame[1].arbitroPosZ = 0.0f;
+	KeyFrame[1].rotArbitro = 0.0f;
+	KeyFrame[1].anguloTorsoY = 0.0f;
+	KeyFrame[1].anguloBrazoIzq = -40.0f;
+	KeyFrame[1].anguloBicepD = 10.0f;
+	KeyFrame[1].anguloCodoD = 0.0f;
+	KeyFrame[1].anguloAnteBrazoD = 0.0f;
+	KeyFrame[1].anguloManoD = 0.0f;
+	KeyFrame[1].anguloDedos = 0.0f;
+	FrameIndex++;
+
+	// KeyFrame 2 (Pose final)
+	KeyFrame[2].arbitroPosX = 0.0f; KeyFrame[2].arbitroPosY = 0.0f; KeyFrame[2].arbitroPosZ = 0.0f;
+	KeyFrame[2].rotArbitro = 0.0f;
+	KeyFrame[2].anguloTorsoY = 0.0f;
+	KeyFrame[2].anguloBrazoIzq = -100.0f;
+	KeyFrame[2].anguloBicepD = 20.0f;
+	KeyFrame[2].anguloCodoD = 0.0f;
+	KeyFrame[2].anguloAnteBrazoD = 0.0f;
+	KeyFrame[2].anguloManoD = 0.0f;
+	KeyFrame[2].anguloDedos = 0.0f;
+	FrameIndex++;
+
+
+	KeyFrame[3].arbitroPosX = 0.0f; KeyFrame[3].arbitroPosY = 0.0f; KeyFrame[3].arbitroPosZ = 0.0f;
+	KeyFrame[3].rotArbitro = 0.0f;
+	KeyFrame[3].anguloTorsoY = 0.0f;
+	KeyFrame[3].anguloBrazoIzq = -160.0f;
+	KeyFrame[3].anguloBicepD = 40.0f;
+	KeyFrame[3].anguloCodoD = 0.0f;
+	KeyFrame[3].anguloAnteBrazoD = 0.0f;
+	KeyFrame[3].anguloManoD = 0.0f;
+	KeyFrame[3].anguloDedos = 0.0f;
+	FrameIndex++;
+
+	KeyFrame[4].arbitroPosX = 0.0f; KeyFrame[4].arbitroPosY = 0.0f; KeyFrame[4].arbitroPosZ = 0.0f;
+	KeyFrame[4].rotArbitro = 0.0f;
+	KeyFrame[4].anguloTorsoY = 0.0f;
+	KeyFrame[4].anguloBrazoIzq = -20.0f;
+	KeyFrame[4].anguloBicepD = 25.0f;
+	KeyFrame[4].anguloCodoD = 0.0f;
+	KeyFrame[4].anguloAnteBrazoD = 0.0f;
+	KeyFrame[4].anguloManoD = 0.0f;
+	KeyFrame[4].anguloDedos = 0.0f;
+	FrameIndex++;
+
+	// Iniciar la reproducción automática de la animación en bucle
+	if (FrameIndex > 1)
+	{
+		resetElements();
+		interpolation();
+		play = true;
+		playIndex = 0;
+		i_curr_steps = 0;
+	}
 
 	// Al chile no se Bravo administraci�n
 	// --- Cargar Colisi�n Est�tica con Bullet Physics ---
@@ -420,7 +529,7 @@ int main()
 		glfwPollEvents();
 		DoMovement();
 		Animation();
-
+		AnimationKeyFrames();
 
 		//----------------------------------------------------------------------------------------------------
 
@@ -832,6 +941,94 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSea));
 		Sea.Draw(lightingShader);
 
+		// --- DIBUJADO JERÁRQUICO CORREGIDO DEL ÁRBITRO ---
+		glm::vec3 escalaArbitro = glm::vec3(0.25f);
+
+		// --- OFFSETS DE ARTICULACIONES ---
+		glm::vec3 offsetHombroIzq = glm::vec3(0.4f, 7.0f, 0.0f);
+		glm::vec3 offsetHombroDer = glm::vec3(-0.4f, 7.0f, 0.0f);
+		glm::vec3 offsetCodoD = glm::vec3(3.0f, -1.5f, -50.0f); // <--- Ajusta este offset si el codo se separa del bicep
+
+		// 1. TORSO (Matriz Raíz Global)
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(arbitroPosX, arbitroPosY, arbitroPosZ));
+		model = glm::scale(model, escalaArbitro);
+		model = glm::rotate(model, glm::radians(rotArbitro), glm::vec3(0.0f, 1.0f, 0.0f));
+		model = glm::rotate(model, glm::radians(anguloTorsoY), glm::vec3(0.0f, 1.0f, 0.0f));
+
+		// Guardamos la matriz base del torso
+		glm::mat4 modelTorsoTemp = model;
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		TorsoPC.Draw(lightingShader);
+
+
+		// 2. BRAZO IZQUIERDO (Con pivote ajustado al hombro)
+		model = modelTorsoTemp;
+		model = glm::translate(model, offsetHombroIzq);
+		model = glm::rotate(model, glm::radians(anguloBrazoIzq), glm::vec3(1.0f, 0.5f, 0.0f));
+		model = glm::translate(model, -offsetHombroIzq);
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		brazoIzq.Draw(lightingShader);
+
+
+		// 3. EXTREMIDAD DERECHA (Cadena Jerárquica Estricta)
+
+		// A. BicepD (Hereda del Torso aplicando el offset del hombro derecho)
+		model = modelTorsoTemp;
+		model = glm::translate(model, offsetHombroDer);
+		model = glm::rotate(model, glm::radians(anguloBicepD), glm::vec3(5.0f, 0.4f, 12.0f));
+		model = glm::translate(model, -offsetHombroDer);
+
+		glm::mat4 modelBicepTemp = model; // Guardamos el estado base del bicep
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		BicepD.Draw(lightingShader);
+
+
+		// B. codoD (Hereda de BicepD usando su propio offset de articulación)
+		model = modelBicepTemp;
+		model = glm::translate(model, offsetCodoD);                                       // 1. Nos movemos a la unión del codo
+		model = glm::rotate(model, glm::radians(anguloCodoD), glm::vec3(0.0f, 0.0f, 1.0f)); // 2. Rotamos el codo
+		model = glm::translate(model, -offsetCodoD);                                      // 3. Regresamos para alinear la malla
+
+		glm::mat4 modelCodoTemp = model; // Guardamos el estado base del codo
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		codoD.Draw(lightingShader);
+
+
+		// C. AnteBrazoD (Hereda de codoD)
+		model = modelCodoTemp;
+		model = glm::rotate(model, glm::radians(anguloAnteBrazoD), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 modelAnteBrazoTemp = model;
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		AnteBrazoD.Draw(lightingShader);
+
+
+		// D. manoD (Hereda de AnteBrazoD)
+		model = modelAnteBrazoTemp;
+		model = glm::rotate(model, glm::radians(anguloManoD), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 modelManoTemp = model;
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		manoD.Draw(lightingShader);
+
+
+		// E. Dedos D1 y D2 (Heredan de manoD)
+		model = modelManoTemp;
+		model = glm::rotate(model, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		dedosD1.Draw(lightingShader);
+
+		model = modelManoTemp;
+		model = glm::rotate(model, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		dedosD2.Draw(lightingShader);
+
+
 		//Mountein (mounteindew.obj)
 		glm::mat4 modelMountein = glm::mat4(1.0f);
 		modelMountein = glm::translate(modelMountein, glm::vec3(100.0f, -2.0f, 120.0f));
@@ -1005,14 +1202,10 @@ int main()
 
 
 
-
-		// 3. Dibujar el Bal�n/Dog (Din�mico)
-
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-		// �AQU� EST� LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Volleyball_Ball.Draw(lightingShader);
 
@@ -1020,28 +1213,6 @@ int main()
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 
-		/*
-		//      view = camera.GetViewMatrix();
-		//model = glm::mat4(1);
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//Piso.Draw(lightingShader);
-
-
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-
-		//model = glm::mat4(1);
-		//glEnable(GL_BLEND);//Avtiva la funcionalidad para trabajar el canal alfa -----------------------------------------------
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-	 //   Dog.Draw(lightingShader);
-		//glDisable(GL_BLEND);  //Desactiva el canal alfa ---------------------------------------------
-		//glBindVertexArray(0);
-		*/
 
 		// Also draw the lamp object, again binding the appropriate shader
 		lampShader.Use();
@@ -1116,33 +1287,10 @@ void DoMovement()
 
 	}*/
 
-	//if (keys[GLFW_KEY_T])
-	//{
-	//	pointLightPositions[0].x += 0.01f;
-	//}
-	//if (keys[GLFW_KEY_G])
-	//{
-	//	pointLightPositions[0].x -= 0.01f;
-	//}
-
-	//if (keys[GLFW_KEY_Y])
-	//{
-	//	pointLightPositions[0].y += 0.01f;
-	//}
-
-	//if (keys[GLFW_KEY_H])
-	//{
-	//	pointLightPositions[0].y -= 0.01f;
-	//}
-	//if (keys[GLFW_KEY_U])
-	//{
-	//	pointLightPositions[0].z -= 0.1f;
-	//}
-	//if (keys[GLFW_KEY_J])
-	//{
-	//	pointLightPositions[0].z += 0.01f;
-	//}
-
+	if (keys[GLFW_KEY_L])
+	{
+		play = true;
+	}
 }
 
 // Is called whenever a key is pressed/released via GLFW
@@ -1171,18 +1319,6 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 	}
 
-	//if (keys[GLFW_KEY_SPACE])
-	//{
-	//	active = !active;
-	//	if (active)
-	//	{
-	//		Light1 = glm::vec3(1.0f, 1.0f, 0.0f);
-	//	}
-	//	else
-	//	{
-	//		Light1 = glm::vec3(0);//Cuado es solo un valor en los 3 vectores pueden dejar solo una componente
-	//	}
-	//}
 	if (keys[GLFW_KEY_1])
 	{
 		bIsFirstPerson = !bIsFirstPerson;
@@ -1255,6 +1391,76 @@ void Animation() {
 			if (RLegs >= 15.0f) { step = !step; }
 		}
 	}
+}
+
+void AnimationKeyFrames()
+{
+	if (play)
+	{
+		if (i_curr_steps >= i_max_steps)
+		{
+			playIndex++;
+			if (playIndex > FrameIndex - 2)
+			{
+				printf("Reiniciando animacion desde cero\n");
+				playIndex = 0;         // Regresa al primer par de keyframes
+				resetElements();       // <--- ¡ESTO ES LO CLAVE! Forzar a que el modelo vuelva a la pose del Frame 0
+			}
+			i_curr_steps = 0;
+			interpolation();
+		}
+		else
+		{
+			arbitroPosX += KeyFrame[playIndex].incX;
+			arbitroPosY += KeyFrame[playIndex].incY;
+			arbitroPosZ += KeyFrame[playIndex].incZ;
+			rotArbitro += KeyFrame[playIndex].rotArbitroInc;
+
+			anguloTorsoY += KeyFrame[playIndex].incAnguloTorsoY;
+			anguloBrazoIzq += KeyFrame[playIndex].incAnguloBrazoIzq;
+			anguloBicepD += KeyFrame[playIndex].incAnguloBicepD;
+			anguloCodoD += KeyFrame[playIndex].incAnguloCodoD;
+			anguloAnteBrazoD += KeyFrame[playIndex].incAnguloAnteBrazoD;
+			anguloManoD += KeyFrame[playIndex].incAnguloManoD;
+			anguloDedos += KeyFrame[playIndex].incAnguloDedos;
+
+			i_curr_steps++;
+		}
+	}
+}
+
+
+
+void resetElements(void)
+{
+	arbitroPosX = KeyFrame[0].arbitroPosX;
+	arbitroPosY = KeyFrame[0].arbitroPosY;
+	arbitroPosZ = KeyFrame[0].arbitroPosZ;
+	rotArbitro = KeyFrame[0].rotArbitro;
+
+	anguloTorsoY = KeyFrame[0].anguloTorsoY;
+	anguloBrazoIzq = KeyFrame[0].anguloBrazoIzq;
+	anguloBicepD = KeyFrame[0].anguloBicepD;
+	anguloCodoD = KeyFrame[0].anguloCodoD;
+	anguloAnteBrazoD = KeyFrame[0].anguloAnteBrazoD;
+	anguloManoD = KeyFrame[0].anguloManoD;
+	anguloDedos = KeyFrame[0].anguloDedos;
+}
+
+void interpolation(void)
+{
+	KeyFrame[playIndex].incX = (KeyFrame[playIndex + 1].arbitroPosX - KeyFrame[playIndex].arbitroPosX) / i_max_steps;
+	KeyFrame[playIndex].incY = (KeyFrame[playIndex + 1].arbitroPosY - KeyFrame[playIndex].arbitroPosY) / i_max_steps;
+	KeyFrame[playIndex].incZ = (KeyFrame[playIndex + 1].arbitroPosZ - KeyFrame[playIndex].arbitroPosZ) / i_max_steps;
+	KeyFrame[playIndex].rotArbitroInc = (KeyFrame[playIndex + 1].rotArbitro - KeyFrame[playIndex].rotArbitro) / i_max_steps;
+
+	KeyFrame[playIndex].incAnguloTorsoY = (KeyFrame[playIndex + 1].anguloTorsoY - KeyFrame[playIndex].anguloTorsoY) / i_max_steps;
+	KeyFrame[playIndex].incAnguloBrazoIzq = (KeyFrame[playIndex + 1].anguloBrazoIzq - KeyFrame[playIndex].anguloBrazoIzq) / i_max_steps;
+	KeyFrame[playIndex].incAnguloBicepD = (KeyFrame[playIndex + 1].anguloBicepD - KeyFrame[playIndex].anguloBicepD) / i_max_steps;
+	KeyFrame[playIndex].incAnguloCodoD = (KeyFrame[playIndex + 1].anguloCodoD - KeyFrame[playIndex].anguloCodoD) / i_max_steps;
+	KeyFrame[playIndex].incAnguloAnteBrazoD = (KeyFrame[playIndex + 1].anguloAnteBrazoD - KeyFrame[playIndex].anguloAnteBrazoD) / i_max_steps;
+	KeyFrame[playIndex].incAnguloManoD = (KeyFrame[playIndex + 1].anguloManoD - KeyFrame[playIndex].anguloManoD) / i_max_steps;
+	KeyFrame[playIndex].incAnguloDedos = (KeyFrame[playIndex + 1].anguloDedos - KeyFrame[playIndex].anguloDedos) / i_max_steps;
 }
 
 void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& Models, const Shader& shader, const bool condition) {
