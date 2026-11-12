@@ -62,9 +62,9 @@ bool firstMouse = true;
 glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 bool active;
 
-float player_rotation {135.0f};
-bool bIsFirstPerson{ false }; 
-bool bIsRunning{ false }; 
+float player_rotation{ 135.0f };
+bool bIsFirstPerson{ false };
+bool bIsRunning{ false };
 
 // Positions of the point lights
 //Arreglo de luces puntuales
@@ -289,8 +289,31 @@ int main()
 
 	//Model chamaca((char*)"Models/MeinGott.glb");
 	Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
-	
-	
+
+
+
+
+	//carga modelo de palmera por partes para poder hacer animaciones de las hojas
+	Model PalmeraTronco((char*)"Models/palmera/tronco.obj");
+
+
+	std::vector<Model> HojasPalmera;
+	std::vector<float> HojasOffset;
+
+
+
+	for (int i = 0; i <= 12; i++) {
+		std::string path = "Models/palmera/palm_leaves_palm_leaves_0_00" + std::to_string(i) + ".obj";
+		//std::cout << "Cargando: " << path << std::endl; // <-- Imprime cuál va a cargar
+
+		// Carga el modelo y lo añade al vector
+		HojasPalmera.push_back(Model((char*)path.c_str()));
+
+		// Asigna un desfase matemático único basado en su índice (ej. 0.5f, 1.0f, 1.5f...)
+		HojasOffset.push_back(i * 0.6f);
+	}
+
+
 	//Model PRun1((char*)"Models/Player/PlayerRun1.obj");
 	//Model PRun2((char*)"Models/Player/PlayerRun2.obj");
 	//Model PRun3((char*)"Models/Player/PlayerRun3.obj");
@@ -298,8 +321,8 @@ int main()
 	//Model PRun5((char*)"Models/Player/PlayerRun5.obj");
 	//Model PRun6((char*)"Models/Player/PlayerRun6.obj");
 	//
-	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/};
-	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */};
+	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/ };
+	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */ };
 
 	Model DogBody((char*)"Models/DogBody.obj");
 	Model HeadDog((char*)"Models/HeadDog.obj");
@@ -325,7 +348,7 @@ int main()
 
 
 
-	
+
 
 	// Al chile no se Bravo administraci�n
 	// --- Cargar Colisi�n Est�tica con Bullet Physics ---
@@ -679,10 +702,10 @@ int main()
 		if (bIsRunning && !bIsFirstPerson) { //no dibujar al personaje corriendo en primera persona
 			//DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
 		}
-		else  {
+		else {
 			chamaca.Draw(lightingShader);
 		}
-		
+
 		//// (Opcional: Dibujar tu cubo del VAO est�tico en el origen)
 		//glm::mat4 modelCubo = glm::mat4(1.0f);
 		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
@@ -691,11 +714,89 @@ int main()
 		//glBindVertexArray(0);
 
 
+		glm::vec3 PalmeraPos = glm::vec3(10.0f, -1.0f, -5.0f);
+
+		// 1. Dibujar el Tronco (Matriz Padre)
+		float AmplitudTronco = 0.045f; // Muy pequeño para que apenas se note
+		float VelocidadTronco = 0.8f;  // Más lento que las hojas (masa pesada)
+
+		// 1. Calcular la rotación y dibujar el Tronco (Matriz Padre)
+		float anguloTronco = sin(glfwGetTime() * VelocidadTronco) * AmplitudTronco;
+
+		glm::mat4 modelTrunk = glm::mat4(1.0f);
+		modelTrunk = glm::translate(modelTrunk, PalmeraPos);
+
+		// Si el origen del tronco está en su base (el suelo), al rotarlo 
+		// se inclinará sutilmente simulando flexibilidad.
+		// Puedes cambiar el eje (1.0f, 0.0f, 0.0f) o (0.0f, 0.0f, 1.0f) según hacia dónde quieras que se incline.
+		modelTrunk = glm::rotate(modelTrunk, anguloTronco, glm::vec3(0.0f, 0.0f, 1.0f));
+
+		// Aplicamos la escala general de la palmera
+		modelTrunk = glm::scale(modelTrunk, glm::vec3(0.15f));
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTrunk));
+		PalmeraTronco.Draw(lightingShader);
+
+		// Parámetros generales del viento
+		float VelocidadViento = 2.5f;
+		float AmplitudViento = 0.15f;
+
+		// 2. Dibujar y animar todas las hojas usando Jerarquía
+		for (size_t i = 0; i < HojasPalmera.size(); i++) {
+			float angle = sin(glfwGetTime() * VelocidadViento + HojasOffset[i]) * AmplitudViento;
+
+			// JERARQUÍA: Heredamos directamente la posición y escala del tronco
+			glm::mat4 modelLeaf = modelTrunk;
+
+			// (Opcional) Si tus hojas se exportaron centradas en el origen y necesitas 
+			// subirlas a la punta del tronco, puedes aplicar una traslación local aquí:
+			// modelLeaf = glm::translate(modelLeaf, glm::vec3(0.0f, alturaEnElTronco, 0.0f));
+
+			// Aplicamos la rotación del viento (el pivote debe estar en la base de la hoja)
+			modelLeaf = glm::rotate(modelLeaf, angle, glm::vec3(0.0f, 0.5f, 0.0f));
+
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLeaf));
+			HojasPalmera[i].Draw(lightingShader);
+		}
+
+
+		PalmeraPos = glm::vec3(-8.0f, -1.0f, 8.0f);
+
+		VelocidadTronco = 0.8f; 
+
+		anguloTronco = sin(glfwGetTime() * VelocidadTronco) * AmplitudTronco;
+
+		modelTrunk = glm::mat4(1.0f);
+		modelTrunk = glm::translate(modelTrunk, PalmeraPos);
+
+		modelTrunk = glm::rotate(modelTrunk, anguloTronco, glm::vec3(0.0f, 0.0f, 1.0f));
+		modelTrunk = glm::scale(modelTrunk, glm::vec3(0.10f));
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTrunk));
+		PalmeraTronco.Draw(lightingShader);
+
+		VelocidadViento = 2.8f;
+		AmplitudViento = 0.17f;
+
+		for (size_t i = 0; i < HojasPalmera.size(); i++) {
+			float angle = sin(glfwGetTime() * VelocidadViento + HojasOffset[i]) * AmplitudViento;
+
+			// JERARQUÍA: Heredamos directamente la posición y escala del tronco
+			glm::mat4 modelLeaf = modelTrunk;
+
+		
+			// Aplicamos la rotación del viento (el pivote debe estar en la base de la hoja)
+			modelLeaf = glm::rotate(modelLeaf, angle, glm::vec3(0.0f, 0.5f, 0.0f));
+
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLeaf));
+			HojasPalmera[i].Draw(lightingShader);
+		}
+
 		//Body
 		glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
 
 		glm::mat4 modelDog = glm::mat4(1.0f);
-		
+
 		modelTemp = modelDog = glm::translate(modelDog, dogPos);
 		modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
@@ -767,7 +868,7 @@ int main()
 		modelGradas = glm::scale(modelGradas, glm::vec3(1.75f, 1.75f, 1.75f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGradas));
 		Gradas.Draw(lightingShader);
-		
+
 		// Gradas2 (Stands.obj)
 		glm::mat4 modelGradas2 = glm::mat4(1.0f);
 		modelGradas2 = glm::translate(modelGradas2, glm::vec3(4.5f, 0.05f, 27.5f));
@@ -778,7 +879,7 @@ int main()
 
 		// Cancha (Voleyball_Court.obj)
 		glm::mat4 modelCancha = glm::mat4(1.0f);
-		modelCancha = glm::translate(modelCancha, glm::	vec3(0.0f, 0.003f, 15.0f));
+		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.003f, 15.0f));
 		modelCancha = glm::scale(modelCancha, glm::vec3(0.6f, 1.0f, 0.9f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
@@ -823,7 +924,7 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla2));
 		Silla2.Draw(lightingShader);
 
-		
+
 		modelSombrilla = glm::mat4(1.0f);
 		modelSombrilla = glm::translate(modelSombrilla, glm::vec3(-2.0f, -1.5f, -15.0f));
 		modelSombrilla = glm::scale(modelSombrilla, glm::vec3(0.4f, 0.4f, 0.4f));
@@ -1038,7 +1139,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 	if (keys[GLFW_KEY_2])
 	{
-		dayCycleOn= !dayCycleOn;
+		dayCycleOn = !dayCycleOn;
 	}
 
 }
@@ -1073,7 +1174,7 @@ void Animation() {
 
 
 	if (AnimDog) {
-		
+
 
 		dogPos.z += 0.005f;
 
@@ -1097,14 +1198,14 @@ void Animation() {
 
 void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& Models, const Shader& shader, const bool condition) {
 
-	GLfloat choppedtime{ time / keyposes.back()};
+	GLfloat choppedtime{ time / keyposes.back() };
 
-	if (!condition || current_animation_time > choppedtime*keyposes.back()) { 
-		current_animation_time = 0; 
+	if (!condition || current_animation_time > choppedtime * keyposes.back()) {
+		current_animation_time = 0;
 		return;
 	}
 
-	for (int i{ 0 }; i < keyposes.size() -1; i++) {
+	for (int i{ 0 }; i < keyposes.size() - 1; i++) {
 		if (current_animation_time >= choppedtime * keyposes[i] && current_animation_time <= choppedtime * keyposes[i + 1]) {
 			Models[i].Draw(shader);
 		}
