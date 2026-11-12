@@ -270,13 +270,14 @@ int main()
 	Model Gradas((char*)"Models/Stands/Stands.obj");
 	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
 
+	Model Gimnasio((char*)"Models/Gymnasium/gymnasium.obj");
 
 
 
 	// Al chile no se Bravo administración
 	// --- Cargar Colisión Estática con Bullet Physics ---
 	// Parámetros: Ruta, Posición (X,Y,Z), Rotación (X,Y,Z), Escala (X,Y,Z)
-	btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
+	btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
 	if (GradasCollision) {
 		dynamicsWorld->addRigidBody(GradasCollision);
 	}
@@ -621,12 +622,24 @@ int main()
 		Gradas.Draw(lightingShader);
 
 
+		
+
+
 		// Cancha (Voleyball_Court.obj)
 		glm::mat4 modelCancha = glm::mat4(1.0f);
-		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.005f, 15.0f));
+		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.003f, 15.0f));
 		modelCancha = glm::scale(modelCancha, glm::vec3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
+
+
+		// Gimnasio (gymnasium.obj)
+		glm::mat4 modelGimnasio = glm::mat4(1.0f);
+		modelGimnasio = glm::translate(modelGimnasio, glm::vec3(0.0f, 0.005f, 15.0f));
+		modelGimnasio = glm::rotate(modelGimnasio, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelGimnasio = glm::scale(modelGimnasio, glm::vec3(1.0f, 1.0f, 1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGimnasio));
+		Gimnasio.Draw(lightingShader);
 
 
 
@@ -639,8 +652,10 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Dog.Draw(lightingShader);
 
-		glDisable(GL_BLEND);
 
+
+		glDisable(GL_BLEND);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 
 		/*
