@@ -282,7 +282,7 @@ int main()
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 
 	//Model Dog((char*)"Models/RedDog.obj");
-	Model Dog((char*)"Models/ball.obj");
+	Model Volleyball_Ball((char*)"Models/Ball/VolleyBall_Ball.obj");
 	Model Piso((char*)"Models/sand.obj");
 	Model PisoPlaya((char*)"Models/sand.obj");
 
@@ -1007,13 +1007,14 @@ int main()
 
 
 		// 3. Dibujar el Bal�n/Dog (Din�mico)
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 		// �AQU� EST� LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		Dog.Draw(lightingShader);
+		Volleyball_Ball.Draw(lightingShader);
 
 		glDisable(GL_BLEND);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
