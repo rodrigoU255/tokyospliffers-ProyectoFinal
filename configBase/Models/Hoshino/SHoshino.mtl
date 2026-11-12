@@ -1,0 +1,192 @@
+# Blender 5.2.2 LTS MTL File: 'SHoshino.blend'
+# www.blender.org
+
+newmtl Hoshino_Original_Halo
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Original_Halo.png
+
+newmtl Hoshino_Original_Weapon
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Original_Weapon.png
+
+newmtl Hoshino_Swimsuit_BeachProp
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Swimsuit_BeachProp.png
+
+newmtl Hoshino_Swimsuit_BeachProp_Alpha
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd textures/Hoshino_Swimsuit_BeachProp.png
+map_d textures/Hoshino_Swimsuit_BeachProp.png
+
+newmtl Hoshino_Swimsuit_Body
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Swimsuit_Body.png
+
+newmtl Hoshino_Swimsuit_EyeMouth
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Original_EyeMouth.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_205
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_5_2.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_206
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_6_2.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_207
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_7_2.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_402
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_2_4.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_404
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_4_4.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_405
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_5_4.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_506
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_6_5.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_601
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_1_6.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_700
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_0_7.png
+
+newmtl Hoshino_Swimsuit_EyeMouth_Mouth_701
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_1_7.png
+
+newmtl Hoshino_Swimsuit_Eyebrow
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Original_Face.png
+
+newmtl Hoshino_Swimsuit_Face
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Original_Face.png
+
+newmtl Hoshino_Swimsuit_Hair
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Hoshino_Swimsuit_Hair.png

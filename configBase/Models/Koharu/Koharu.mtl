@@ -1,0 +1,202 @@
+# Blender 5.2.2 LTS MTL File: 'Koharu.blend'
+# www.blender.org
+
+newmtl CH0205_Alpha
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+illum 2
+map_Kd textures/CH0205_Alpha.png
+map_d textures/CH0205_Alpha.png
+
+newmtl CH0205_Body
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/CH0205_Body.png
+
+newmtl CH0205_EyeMouth
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/CH0205_EyeMouth.png
+
+newmtl CH0205_EyeMouth_Mouth_101
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_1_1.png
+
+newmtl CH0205_EyeMouth_Mouth_200
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_0_2.png
+
+newmtl CH0205_EyeMouth_Mouth_201
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_1_2.png
+
+newmtl CH0205_EyeMouth_Mouth_202
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_2_2.png
+
+newmtl CH0205_EyeMouth_Mouth_205
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_5_2.png
+
+newmtl CH0205_EyeMouth_Mouth_305
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_5_3.png
+
+newmtl CH0205_EyeMouth_Mouth_502
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_2_5.png
+
+newmtl CH0205_EyeMouth_Mouth_506
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_6_5.png
+
+newmtl CH0205_EyeMouth_Mouth_507
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_7_5.png
+
+newmtl CH0205_EyeMouth_Mouth_602
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_2_6.png
+
+newmtl CH0205_EyeMouth_Mouth_605
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Character_Mouth_5_6.png
+
+newmtl CH0205_Eyebrow
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/CH0205_Face.png
+
+newmtl CH0205_Face
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/CH0205_Face.png
+
+newmtl CH0205_Hair
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/CH0205_Hair.png
+
+newmtl CH0205_Prop
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/CH0205_Prop.png
+
+newmtl Koharu_Original_Halo
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Koharu_Original_Halo.png
+
+newmtl Koharu_Original_Weapon
+Ns 22.499992
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 2
+map_Kd textures/Koharu_Original_Weapon.png

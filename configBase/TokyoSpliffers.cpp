@@ -72,7 +72,7 @@ glm::vec3 pointLightPositions[] = {
 	glm::vec3(3.7f, 4.0f, 15.0f),
 	glm::vec3(-3.65f, 4.0f, 15.0f),
 	glm::vec3(-11.5f, 2.0f, -16.0f),
-	glm::vec3(2.0f, 0.0f, -2.0f)
+	glm::vec3(8.0f, 1.0f, -15.0f)
 };
 
 float vertices[] = {
@@ -315,15 +315,15 @@ int main()
 	}
 
 
-	//Model PRun1((char*)"Models/Player/PlayerRun1.obj");
-	//Model PRun2((char*)"Models/Player/PlayerRun2.obj");
-	//Model PRun3((char*)"Models/Player/PlayerRun3.obj");
-	//Model PRun4((char*)"Models/Player/PlayerRun4.obj");
-	//Model PRun5((char*)"Models/Player/PlayerRun5.obj");
-	//Model PRun6((char*)"Models/Player/PlayerRun6.obj");
-	//
-	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/ };
-	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */ };
+	Model PRun1((char*)"Models/Player/PlayerRun1.obj");
+	Model PRun2((char*)"Models/Player/PlayerRun2.obj");
+	Model PRun3((char*)"Models/Player/PlayerRun3.obj");
+	Model PRun4((char*)"Models/Player/PlayerRun4.obj");
+	Model PRun5((char*)"Models/Player/PlayerRun5.obj");
+	Model PRun6((char*)"Models/Player/PlayerRun6.obj");
+	
+	std::vector<Model> RunModels{PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
+	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20};
 
 	Model DogBody((char*)"Models/DogBody.obj");
 	Model HeadDog((char*)"Models/HeadDog.obj");
@@ -344,8 +344,11 @@ int main()
 	Model Sombrilla((char*)"Models/Umbrella/umbrella.obj");
 	Model Edificio((char*)"Models/Edificio/Edificio.obj");
 	Model Reflector((char*)"Models/Spotlight/spotlight.obj");
-
-
+	
+	Model Atsuko((char*)"Models/SAtsuko/SAtsuko.obj");
+	Model Hoshino((char*)"Models/Hoshino/SHoshino.obj");
+	Model Koharu((char*)"Models/Koharu/Koharu.obj");
+	Model Shiroko((char*)"Models/Shiroko/Shiroko.obj");
 
 	Model Sea((char*)"Models/sea.obj");
 	Model Mountein((char*)"Models/mounteindew.obj");
@@ -357,10 +360,10 @@ int main()
 	// Al chile no se Bravo administraci�n
 	// --- Cargar Colisi�n Est�tica con Bullet Physics ---
 	// Par�metros: Ruta, Posici�n (X,Y,Z), Rotaci�n (X,Y,Z), Escala (X,Y,Z)
-	btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
+	/*btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
 	if (GradasCollision) {
 		dynamicsWorld->addRigidBody(GradasCollision);
-	}
+	}*/
 
 
 
@@ -685,7 +688,7 @@ int main()
 
 
 		if (bIsRunning && !bIsFirstPerson) { //no dibujar al personaje corriendo en primera persona
-			//DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
+			DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
 		}
 		else {
 			chamaca.Draw(lightingShader);
@@ -931,12 +934,75 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelE));
 		Edificio.Draw(lightingShader);
 
+		//Atsuko
+		glm::mat4 modelAtsuko = glm::mat4(1.0f);
+		modelAtsuko = glm::translate(modelAtsuko, glm::vec3(15.0f, 0.05f, 0.0f));
+		modelAtsuko = glm::rotate(modelAtsuko, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelAtsuko = glm::scale(modelAtsuko, glm::vec3(1.75f, 1.75f, 1.75f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelAtsuko));
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+
+		Atsuko.Draw(lightingShader);
+
+		glDisable(GL_BLEND);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+		//Koharu
+		glm::mat4 modelKoharu = glm::mat4(1.0f);
+		modelKoharu = glm::translate(modelKoharu, glm::vec3(-10.0f, 0.05f, 10.0f));
+		modelKoharu = glm::rotate(modelKoharu, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelKoharu = glm::scale(modelKoharu, glm::vec3(1.75f, 1.75f, 1.75f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelKoharu));
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+
+		Koharu.Draw(lightingShader);
+
+		glDisable(GL_BLEND);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+		//Shiroko
+		glm::mat4 modelShiroko = glm::mat4(1.0f);
+		modelShiroko = glm::translate(modelShiroko, glm::vec3(-5.0f, -1.35f, -20.0f));
+		modelShiroko = glm::rotate(modelShiroko, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelShiroko = glm::scale(modelShiroko, glm::vec3(1.75f, 1.75f, 1.75f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelShiroko));
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+
+		Shiroko.Draw(lightingShader);
+
+		glDisable(GL_BLEND);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+		//Hoshino
+		glm::mat4 modelHoshino = glm::mat4(1.0f);
+		modelHoshino = glm::translate(modelHoshino, glm::vec3(15.0f, 0.5f, 10.0f));
+		modelHoshino = glm::rotate(modelHoshino, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelHoshino = glm::scale(modelHoshino, glm::vec3(0.55f, 0.55f, 0.55f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelHoshino));
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
+
+		Hoshino.Draw(lightingShader);
+
+		glDisable(GL_BLEND);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+
+		
+
 		// Reflector (spotlight.obj)
 		glm::mat4 modelReflector = glm::mat4(1.0f);
 		modelReflector = glm::translate(modelReflector, spotPos);
 		modelReflector = glm::scale(modelReflector, glm::vec3(1.0f, 1.0f, 1.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelReflector));
 		Reflector.Draw(lightingShader);
+
 
 
 
@@ -1049,32 +1115,32 @@ void DoMovement()
 
 	}*/
 
-	if (keys[GLFW_KEY_T])
-	{
-		pointLightPositions[0].x += 0.01f;
-	}
-	if (keys[GLFW_KEY_G])
-	{
-		pointLightPositions[0].x -= 0.01f;
-	}
+	//if (keys[GLFW_KEY_T])
+	//{
+	//	pointLightPositions[0].x += 0.01f;
+	//}
+	//if (keys[GLFW_KEY_G])
+	//{
+	//	pointLightPositions[0].x -= 0.01f;
+	//}
 
-	if (keys[GLFW_KEY_Y])
-	{
-		pointLightPositions[0].y += 0.01f;
-	}
+	//if (keys[GLFW_KEY_Y])
+	//{
+	//	pointLightPositions[0].y += 0.01f;
+	//}
 
-	if (keys[GLFW_KEY_H])
-	{
-		pointLightPositions[0].y -= 0.01f;
-	}
-	if (keys[GLFW_KEY_U])
-	{
-		pointLightPositions[0].z -= 0.1f;
-	}
-	if (keys[GLFW_KEY_J])
-	{
-		pointLightPositions[0].z += 0.01f;
-	}
+	//if (keys[GLFW_KEY_H])
+	//{
+	//	pointLightPositions[0].y -= 0.01f;
+	//}
+	//if (keys[GLFW_KEY_U])
+	//{
+	//	pointLightPositions[0].z -= 0.1f;
+	//}
+	//if (keys[GLFW_KEY_J])
+	//{
+	//	pointLightPositions[0].z += 0.01f;
+	//}
 
 }
 
