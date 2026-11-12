@@ -71,7 +71,7 @@ bool bIsRunning{ false };
 glm::vec3 pointLightPositions[] = {
 	glm::vec3(3.7f, 4.0f, 15.0f),
 	glm::vec3(-3.65f, 4.0f, 15.0f),
-	glm::vec3(-2.0f, 0.0f, -2.0f),
+	glm::vec3(-11.5f, 2.0f, -16.0f),
 	glm::vec3(2.0f, 0.0f, -2.0f)
 };
 
@@ -143,7 +143,8 @@ bool rotated{ false };
 float dayCycle = 0.0f;
 bool dayCycleOn = false;
 
-
+bool gymLights = true;
+bool gymSpotLight = false;
 
 
 // Deltatime
@@ -242,7 +243,7 @@ int main()
 
 
 	// Create a GLFWwindow object that we can use for GLFW's functions
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Fuentes de luz", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Toukyou Spliffers", nullptr, nullptr);
 
 	if (nullptr == window)
 	{
@@ -319,6 +320,9 @@ int main()
 	Model Silla2((char*)"Models/Beach_Chairs/chair2.obj");
 	Model Sombrilla((char*)"Models/Umbrella/umbrella.obj");
 	Model Edificio((char*)"Models/Edificio/Edificio.obj");
+	Model Reflector((char*)"Models/Spotlight/spotlight.obj");
+
+
 
 	Model Sea((char*)"Models/sea.obj");
 	Model Mountein((char*)"Models/mounteindew.obj");
@@ -492,14 +496,6 @@ int main()
 
 
 
-
-
-
-
-
-
-
-
 		//----------------------------------------------------------------------------------------------------
 
 
@@ -511,10 +507,6 @@ int main()
 
 		// OpenGL options
 		glEnable(GL_DEPTH_TEST);
-
-
-
-
 
 
 		//Load Model
@@ -559,33 +551,30 @@ int main()
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].quadratic"), 0.075f);*/
 
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].ambient"), lightColor.x, lightColor.y, lightColor.z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].diffuse"), lightColor.x, lightColor.y, lightColor.z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].specular"), 1.0f, 1.0f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].ambient"), gymLights*0.3f, gymLights*0.3f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].diffuse"), gymLights * 1.0f, gymLights * 0.9f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].specular"), gymLights * 1.0f, gymLights * 1.0f, 0.0f);
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].linear"), 0.045f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].linear"), 0.05f);
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].quadratic"), 0.075f);
-
-
-
 
 		// Point light 2
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].position"), pointLightPositions[1].x, pointLightPositions[1].y, pointLightPositions[1].z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].ambient"), 0.1f, 0.01f, 0.01f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].diffuse"), 1.2f, 3.3f, 0.2f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].specular"), 0.5f, 0.5f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].ambient"), gymLights * 0.3f, gymLights * 0.03f, gymLights * 0.03f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].diffuse"), gymLights * 1.0f, gymLights * 0.1f, gymLights * 0.1f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[1].specular"), gymLights * 1.0f, gymLights * 0.2f, gymLights * 0.2f);
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[1].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[1].linear"), 1.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[1].quadratic"), 1.0f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[1].linear"), 0.05f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[1].quadratic"), 0.075f);
 
 		// Point light 3
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].position"), pointLightPositions[2].x, pointLightPositions[2].y, pointLightPositions[2].z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].ambient"), 0.1f, 0.1f, 0.2f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].diffuse"), 5.2f, 2.6f, 2.3f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].specular"), 1.0f, 1.7f, 0.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].ambient"), 0.02f, 0.2f, 0.2f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].diffuse"), 0.1f, 1.0f, 0.9f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[2].specular"), 0.2f, 1.0f, 1.0f);
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[2].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[2].linear"), 0.5f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[2].quadratic"), 0.5f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[2].linear"), 0.045f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[2].quadratic"), 0.075f);
 
 		// Point light 4
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[3].position"), pointLightPositions[3].x, pointLightPositions[3].y, pointLightPositions[3].z);
@@ -596,17 +585,20 @@ int main()
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[3].linear"), 0.6f);
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[3].quadratic"), 0.7f);
 
-		// SpotLight
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.position"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.direction"), camera.GetFront().x, camera.GetFront().y, camera.GetFront().z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.ambient"), 0.1f, 0.1f, 0.8f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.diffuse"), 0.1f, 0.1f, 0.8f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.specular"), 0.0f, 0.0f, 0.0f);
+		glm::vec3 spotPos(-2.0f, 4.0f, 3.5f);	
+		glm::vec3 spotDir = glm::normalize(glm::vec3(0.1f, -0.25f, 0.5f));	
+	
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.position"), spotPos.x, spotPos.y, spotPos.z);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.direction"), spotDir.x, spotDir.y, spotDir.z);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.ambient"), gymSpotLight * 0.7f, gymSpotLight * 0.7f, gymSpotLight * 0.7f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.diffuse"), gymSpotLight * 0.7f, gymSpotLight *  0.7f, gymSpotLight * 0.7f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "spotLight.specular"), gymSpotLight *  0.1f, gymSpotLight *  0.1f, gymSpotLight * 0.1f);
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.linear"), 0.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.quadratic"), 0.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.cutOff"), glm::cos(glm::radians(12.0f)));
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.outerCutOff"), glm::cos(glm::radians(18.0f)));
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.linear"), 0.005f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.quadratic"), 0.005f);
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.cutOff"), glm::cos(glm::radians(12.5f)));
+		glUniform1f(glGetUniformLocation(lightingShader.Program, "spotLight.outerCutOff"), glm::cos(glm::radians(15.0f)));
+
 
 		// Set material properties
 		glUniform1f(glGetUniformLocation(lightingShader.Program, "material.shininess"), 5.0f);
@@ -629,14 +621,7 @@ int main()
 
 
 		//Carga de modelo 
-
-
-
-
-
-
-
-
+		// 
 		// 1. Configurar vista y matrices generales
 		//view = camera.GetViewMatrix();
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -736,11 +721,7 @@ int main()
 		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
 		B_RightLeg.Draw(lightingShader);
-
-
-
-
-
+		
 		// Sea (sea.obj)
 		glm::mat4 modelSea = glm::mat4(1.0f);
 		modelSea = glm::translate(modelSea, glm::vec3(0.0f, -2.0f, 0.0f));
@@ -757,8 +738,6 @@ int main()
 		modelMountein = glm::translate(modelMountein, glm::vec3(-120.0f, -1.0f, 20.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelMountein));
 		Mountein.Draw(lightingShader);
-
-
 
 		// Gradas (Stands.obj)
 		glm::mat4 modelGradas = glm::mat4(1.0f);
@@ -782,7 +761,6 @@ int main()
 		modelCancha = glm::scale(modelCancha, glm::vec3(0.6f, 1.0f, 0.9f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
-
 
 		// Gimnasio (gymnasium.obj)
 		glm::mat4 modelGimnasio = glm::mat4(1.0f);
@@ -822,8 +800,6 @@ int main()
 		modelSilla2 = glm::scale(modelSilla2, glm::vec3(1.25f, 1.25f, 1.25f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla2));
 		Silla2.Draw(lightingShader);
-
-		
 		modelSombrilla = glm::mat4(1.0f);
 		modelSombrilla = glm::translate(modelSombrilla, glm::vec3(-2.0f, -1.5f, -15.0f));
 		modelSombrilla = glm::scale(modelSombrilla, glm::vec3(0.4f, 0.4f, 0.4f));
@@ -852,6 +828,13 @@ int main()
 		modelE = glm::scale(modelE, glm::vec3(0.035f, 0.035f, 0.035f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelE));
 		Edificio.Draw(lightingShader);
+
+		// Reflector (spotlight.obj)
+		glm::mat4 modelReflector = glm::mat4(1.0f);
+		modelReflector = glm::translate(modelReflector, spotPos);
+		modelReflector = glm::scale(modelReflector, glm::vec3(1.0f, 1.0f, 1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelReflector));
+		Reflector.Draw(lightingShader);
 
 
 
@@ -1039,6 +1022,16 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	if (keys[GLFW_KEY_2])
 	{
 		dayCycleOn= !dayCycleOn;
+	}
+
+	if (keys[GLFW_KEY_3])
+	{
+		gymLights = !gymLights;
+	}
+
+	if (keys[GLFW_KEY_4])
+	{
+		gymSpotLight = !gymSpotLight;
 	}
 
 }
