@@ -140,6 +140,12 @@ float rotate_dog = 0.0f;
 bool step = false;
 bool rotated{ false };
 
+float dayCycle = 0.0f;
+bool dayCycleOn = false;
+
+
+
+
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
 GLfloat lastFrame = 0.0f;  	// Time of last frame
@@ -530,9 +536,9 @@ int main()
 		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
 		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
 
-
+		dayCycle = dayCycleOn ? (sin(TotaldeltaTimes * 0.2f) * 0.5f + 0.5f) : 0.0f;
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 1.0f, 1.0f, 1.0f);
+		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 1.0f - 0.95f * dayCycle, 1.0f - 0.95f * dayCycle, 1.0f - 0.85f * dayCycle);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
 
@@ -1028,6 +1034,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	if (keys[GLFW_KEY_1])
 	{
 		bIsFirstPerson = !bIsFirstPerson;
+	}
+
+	if (keys[GLFW_KEY_2])
+	{
+		dayCycleOn= !dayCycleOn;
 	}
 
 }
