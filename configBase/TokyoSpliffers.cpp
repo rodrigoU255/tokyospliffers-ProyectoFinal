@@ -62,9 +62,9 @@ bool firstMouse = true;
 glm::vec3 lightPos(0.0f, 0.0f, 0.0f);
 bool active;
 
-float player_rotation {135.0f};
-bool bIsFirstPerson{ false }; 
-bool bIsRunning{ false }; 
+float player_rotation{ 135.0f };
+bool bIsFirstPerson{ false };
+bool bIsRunning{ false };
 
 // Positions of the point lights
 //Arreglo de luces puntuales
@@ -167,38 +167,38 @@ int main()
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);*/
 
 	//------------------------------------------------------------------------------------------------------------------------------------
-	// 1. Configuración de colisiones predeterminada
+	// 1. Configuraciï¿½n de colisiones predeterminada
 	btDefaultCollisionConfiguration* collisionConfiguration = new btDefaultCollisionConfiguration();
 
 	// 2. Despachador de colisiones (maneja los algoritmos de choque)
 	btCollisionDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
 
-	// 3. Broadphase (optimiza qué objetos pueden chocar antes de calcularlos con precisión)
+	// 3. Broadphase (optimiza quï¿½ objetos pueden chocar antes de calcularlos con precisiï¿½n)
 	btBroadphaseInterface* overlappingPairCache = new btDbvtBroadphase();
 
 	// 4. Solucionador de restricciones (gravedad, fuerzas, articulaciones)
 	btSequentialImpulseConstraintSolver* solver = new btSequentialImpulseConstraintSolver;
 
-	// 5. El Mundo Físico Dinámico
+	// 5. El Mundo Fï¿½sico Dinï¿½mico
 	btDiscreteDynamicsWorld* dynamicsWorld = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
 	// Configurar la gravedad (eje Y hacia abajo)
 	dynamicsWorld->setGravity(btVector3(0, -9.81, 0));
 
-	// --- Crear el Suelo Estático (Caja delimitadora) ---
+	// --- Crear el Suelo Estï¿½tico (Caja delimitadora) ---
 	btCollisionShape* groundShape = new btBoxShape(btVector3(15.0f, 0.5f, 25.0f));
 	//btCollisionShape* groundShape = new btBoxShape(btVector3(50.0f, 1.0f, 50.0f));
 	btTransform groundTransform;
 	groundTransform.setIdentity();
-	groundTransform.setOrigin(btVector3(0, -1.9f, 0)); // Posición en Y
+	groundTransform.setOrigin(btVector3(0, -1.9f, 0)); // Posiciï¿½n en Y
 
 	btDefaultMotionState* groundMotionState = new btDefaultMotionState(groundTransform);
-	// Al pasarle 0.0f de masa, Bullet sabe que el objeto NO se mueve (es estático)
+	// Al pasarle 0.0f de masa, Bullet sabe que el objeto NO se mueve (es estï¿½tico)
 	btRigidBody::btRigidBodyConstructionInfo groundInfo(0.0f, groundMotionState, groundShape, btVector3(0, 0, 0));
 	btRigidBody* groundBody = new btRigidBody(groundInfo);
 	dynamicsWorld->addRigidBody(groundBody);
 
-	// --- Crear el Balón Dinámico (Esfera de colisión) ---
+	// --- Crear el Balï¿½n Dinï¿½mico (Esfera de colisiï¿½n) ---
 	btCollisionShape* sphereShape = new btSphereShape(0.5f); // Radio de 1.0
 	btTransform startTransform;
 	startTransform.setIdentity();
@@ -206,7 +206,7 @@ int main()
 
 	btScalar mass = 1.0f;
 	btVector3 localInertia(0, 0, 0);
-	sphereShape->calculateLocalInertia(mass, localInertia); // Calcula cómo debe rodar/rebotar
+	sphereShape->calculateLocalInertia(mass, localInertia); // Calcula cï¿½mo debe rodar/rebotar
 
 	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(startTransform);
 	btRigidBody::btRigidBodyConstructionInfo sphereInfo(mass, sphereMotionState, sphereShape, localInertia);
@@ -215,8 +215,8 @@ int main()
 
 
 	//CHARRRRRRRRRRRRRRRR
-	// --- INICIALIZACIÓN (Antes del while) ---
-// Radio de 0.5, Altura de la sección cilíndrica de 1.0 (Altura total = 2.0 unidades)
+	// --- INICIALIZACIï¿½N (Antes del while) ---
+// Radio de 0.5, Altura de la secciï¿½n cilï¿½ndrica de 1.0 (Altura total = 2.0 unidades)
 	btCollisionShape* playerShape = new btCapsuleShape(0.5f, 1.0f);
 
 	btScalar playerMass = 75.0f;
@@ -225,15 +225,15 @@ int main()
 
 	btTransform playerStartTransform;
 	playerStartTransform.setIdentity();
-	playerStartTransform.setOrigin(btVector3(0, 2.0f, 0)); // Posición inicial del jugador
+	playerStartTransform.setOrigin(btVector3(0, 2.0f, 0)); // Posiciï¿½n inicial del jugador
 	btDefaultMotionState* playerMotionState = new btDefaultMotionState(playerStartTransform);
 
 	btRigidBody::btRigidBodyConstructionInfo playerInfo(playerMass, playerMotionState, playerShape, playerInertia);
 	btRigidBody* playerBody = new btRigidBody(playerInfo);
 
-	// ¡CRÍTICO! Bloquear ejes de rotación X y Z. Solo permitimos giro sobre Y.
+	// ï¿½CRï¿½TICO! Bloquear ejes de rotaciï¿½n X y Z. Solo permitimos giro sobre Y.
 	playerBody->setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
-	// Quitar fricción pura para no quedarse pegado a las paredes
+	// Quitar fricciï¿½n pura para no quedarse pegado a las paredes
 	playerBody->setFriction(0.0f);
 
 	dynamicsWorld->addRigidBody(playerBody);
@@ -290,8 +290,31 @@ int main()
 
 	//Model chamaca((char*)"Models/MeinGott.glb");
 	Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
-	
-	
+
+
+
+
+	//carga modelo de palmera por partes para poder hacer animaciones de las hojas
+	Model PalmeraTronco((char*)"Models/palmera/tronco.obj");
+
+
+	std::vector<Model> HojasPalmera;
+	std::vector<float> HojasOffset;
+
+
+
+	for (int i = 0; i <= 12; i++) {
+		std::string path = "Models/palmera/palm_leaves_palm_leaves_0_00" + std::to_string(i) + ".obj";
+		//std::cout << "Cargando: " << path << std::endl; // <-- Imprime cuÃ¡l va a cargar
+
+		// Carga el modelo y lo aÃ±ade al vector
+		HojasPalmera.push_back(Model((char*)path.c_str()));
+
+		// Asigna un desfase matemÃ¡tico Ãºnico basado en su Ã­ndice (ej. 0.5f, 1.0f, 1.5f...)
+		HojasOffset.push_back(i * 0.6f);
+	}
+
+
 	//Model PRun1((char*)"Models/Player/PlayerRun1.obj");
 	//Model PRun2((char*)"Models/Player/PlayerRun2.obj");
 	//Model PRun3((char*)"Models/Player/PlayerRun3.obj");
@@ -299,8 +322,8 @@ int main()
 	//Model PRun5((char*)"Models/Player/PlayerRun5.obj");
 	//Model PRun6((char*)"Models/Player/PlayerRun6.obj");
 	//
-	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/};
-	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */};
+	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/ };
+	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */ };
 
 	Model DogBody((char*)"Models/DogBody.obj");
 	Model HeadDog((char*)"Models/HeadDog.obj");
@@ -329,11 +352,11 @@ int main()
 
 
 
-	
 
-	// Al chile no se Bravo administración
-	// --- Cargar Colisión Estática con Bullet Physics ---
-	// Parámetros: Ruta, Posición (X,Y,Z), Rotación (X,Y,Z), Escala (X,Y,Z)
+
+	// Al chile no se Bravo administraciï¿½n
+	// --- Cargar Colisiï¿½n Estï¿½tica con Bullet Physics ---
+	// Parï¿½metros: Ruta, Posiciï¿½n (X,Y,Z), Rotaciï¿½n (X,Y,Z), Escala (X,Y,Z)
 	btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
 	if (GradasCollision) {
 		dynamicsWorld->addRigidBody(GradasCollision);
@@ -402,7 +425,7 @@ int main()
 
 
 		//MOVEMENT
-		// 1. Obtener la velocidad física actual (vital para preservar la caída de la gravedad en Y)
+		// 1. Obtener la velocidad fï¿½sica actual (vital para preservar la caï¿½da de la gravedad en Y)
 		btVector3 currentVelocity = playerBody->getLinearVelocity();
 		btVector3 targetVelocity(0.0f, currentVelocity.getY(), 0.0f);
 
@@ -411,9 +434,9 @@ int main()
 
 		glm::vec3 moveDir(0.0f);
 
-		// 2. Extraer los vectores direccionales de tu cámara
+		// 2. Extraer los vectores direccionales de tu cï¿½mara
 		glm::vec3 camFront = camera.GetFront();
-		camFront.y = 0.0f; // Anular inclinación vertical
+		camFront.y = 0.0f; // Anular inclinaciï¿½n vertical
 		camFront = glm::normalize(camFront);
 		glm::vec3 camRight = glm::normalize(glm::cross(camFront, glm::vec3(0.0f, 1.0f, 0.0f)));
 
@@ -430,15 +453,15 @@ int main()
 			targetVelocity.setZ(moveDir.z * speed);
 
 			// Despertar el cuerpo: Bullet desactiva objetos quietos para ahorrar CPU. 
-			// Si no lo despiertas, el jugador se congelará tras unos segundos inactivo.
+			// Si no lo despiertas, el jugador se congelarï¿½ tras unos segundos inactivo.
 			playerBody->activate(true);
 		}
 
 
-		// 4.5 Lógica de Salto con Raycast
+		// 4.5 Lï¿½gica de Salto con Raycast
 		btVector3 startPos = playerBody->getWorldTransform().getOrigin();
 		// Disparamos un rayo hacia abajo. 
-		// La cápsula mide 2.0 de alto (1.0 de centro a pies) + 0.1 extra de margen para detectar el suelo
+		// La cï¿½psula mide 2.0 de alto (1.0 de centro a pies) + 0.1 extra de margen para detectar el suelo
 		btVector3 endPos = startPos - btVector3(0.0f, 1.4f, 0.0f);
 
 		btCollisionWorld::ClosestRayResultCallback rayCallback(startPos, endPos);
@@ -463,17 +486,17 @@ int main()
 
 
 		dynamicsWorld->stepSimulation(deltaTime, 10);
-		// 2. Obtener la nueva transformación (posición/rotación) del balón
+		// 2. Obtener la nueva transformaciï¿½n (posiciï¿½n/rotaciï¿½n) del balï¿½n
 
 		btTransform trans;
 
 
 		sphereBody->getMotionState()->getWorldTransform(trans);
 
-		// PRUEBA SIN GRÁFICOS: Descomenta esto para ver cómo los números caen en la consola
+		// PRUEBA SIN GRï¿½FICOS: Descomenta esto para ver cï¿½mo los nï¿½meros caen en la consola
 		// std::cout << "Altura Y del balon: " << trans.getOrigin().getY() << std::endl;
 
-		// 3. Convertir la física directamente a matriz de GLM
+		// 3. Convertir la fï¿½sica directamente a matriz de GLM
 		float matrix[16];
 		trans.getOpenGLMatrix(matrix);
 		glm::mat4 model = glm::make_mat4(matrix);
@@ -484,14 +507,14 @@ int main()
 		playerBody->getMotionState()->getWorldTransform(trans);
 		btVector3 pos = trans.getOrigin();
 
-		// Calcular una posición para la cámara (ej. 3 metros atrás y 2 metros arriba del personaje)
+		// Calcular una posiciï¿½n para la cï¿½mara (ej. 3 metros atrï¿½s y 2 metros arriba del personaje)
 		glm::vec3 offset = bIsFirstPerson ? glm::vec3(0.0f, 0.8f, 0.0f) : (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		//glm::vec3 offset = (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 targetCameraPos = glm::vec3(pos.x(), pos.y(), pos.z()) + offset;
 
-		// Tu clase Camera asume tener un método o propiedad para asignar la posición.
-		// Si tu variable interna de cámara es privada y no tiene setter, tendrás que agregarle 
-		// un método SetPosition(glm::vec3 newPos) en Camera.h.
+		// Tu clase Camera asume tener un mï¿½todo o propiedad para asignar la posiciï¿½n.
+		// Si tu variable interna de cï¿½mara es privada y no tiene setter, tendrï¿½s que agregarle 
+		// un mï¿½todo SetPosition(glm::vec3 newPos) en Camera.h.
 		camera.SetPosition(targetCameraPos);
 
 
@@ -626,9 +649,9 @@ int main()
 		//view = camera.GetViewMatrix();
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-		// 2. Dibujar el Piso (Estático)
+		// 2. Dibujar el Piso (Estï¿½tico)
 		glm::mat4 modelPiso = glm::mat4(1.0f);
-		// La física del suelo la pusiste en Y = -1.0f, así que bajamos el modelo visual para que coincidan
+		// La fï¿½sica del suelo la pusiste en Y = -1.0f, asï¿½ que bajamos el modelo visual para que coincidan
 		modelPiso = glm::translate(modelPiso, glm::vec3(0.0f, /*-1.0f*/0.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiso));
 		Piso.Draw(lightingShader);
@@ -643,7 +666,7 @@ int main()
 		trans.getOpenGLMatrix(matrix);
 		glm::mat4 PlayerModel = glm::make_mat4(matrix);
 
-		// Compensación visual: Bajamos el modelo la mitad de la altura total de la cápsula (1.0 unidad) 
+		// Compensaciï¿½n visual: Bajamos el modelo la mitad de la altura total de la cï¿½psula (1.0 unidad) 
 		// para que los pies del modelo visual toquen el fondo del colisionador invisible.
 
 		if (glm::length(moveDir) > 0.2f) {
@@ -664,11 +687,11 @@ int main()
 		if (bIsRunning && !bIsFirstPerson) { //no dibujar al personaje corriendo en primera persona
 			//DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
 		}
-		else  {
+		else {
 			chamaca.Draw(lightingShader);
 		}
-		
-		//// (Opcional: Dibujar tu cubo del VAO estático en el origen)
+
+		//// (Opcional: Dibujar tu cubo del VAO estï¿½tico en el origen)
 		//glm::mat4 modelCubo = glm::mat4(1.0f);
 		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
 		//glBindVertexArray(VAO);
@@ -676,11 +699,89 @@ int main()
 		//glBindVertexArray(0);
 
 
+		glm::vec3 PalmeraPos = glm::vec3(10.0f, -1.0f, -5.0f);
+
+		// 1. Dibujar el Tronco (Matriz Padre)
+		float AmplitudTronco = 0.045f; // Muy pequeÃ±o para que apenas se note
+		float VelocidadTronco = 0.8f;  // MÃ¡s lento que las hojas (masa pesada)
+
+		// 1. Calcular la rotaciÃ³n y dibujar el Tronco (Matriz Padre)
+		float anguloTronco = sin(glfwGetTime() * VelocidadTronco) * AmplitudTronco;
+
+		glm::mat4 modelTrunk = glm::mat4(1.0f);
+		modelTrunk = glm::translate(modelTrunk, PalmeraPos);
+
+		// Si el origen del tronco estÃ¡ en su base (el suelo), al rotarlo 
+		// se inclinarÃ¡ sutilmente simulando flexibilidad.
+		// Puedes cambiar el eje (1.0f, 0.0f, 0.0f) o (0.0f, 0.0f, 1.0f) segÃºn hacia dÃ³nde quieras que se incline.
+		modelTrunk = glm::rotate(modelTrunk, anguloTronco, glm::vec3(0.0f, 0.0f, 1.0f));
+
+		// Aplicamos la escala general de la palmera
+		modelTrunk = glm::scale(modelTrunk, glm::vec3(0.15f));
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTrunk));
+		PalmeraTronco.Draw(lightingShader);
+
+		// ParÃ¡metros generales del viento
+		float VelocidadViento = 2.5f;
+		float AmplitudViento = 0.15f;
+
+		// 2. Dibujar y animar todas las hojas usando JerarquÃ­a
+		for (size_t i = 0; i < HojasPalmera.size(); i++) {
+			float angle = sin(glfwGetTime() * VelocidadViento + HojasOffset[i]) * AmplitudViento;
+
+			// JERARQUÃA: Heredamos directamente la posiciÃ³n y escala del tronco
+			glm::mat4 modelLeaf = modelTrunk;
+
+			// (Opcional) Si tus hojas se exportaron centradas en el origen y necesitas 
+			// subirlas a la punta del tronco, puedes aplicar una traslaciÃ³n local aquÃ­:
+			// modelLeaf = glm::translate(modelLeaf, glm::vec3(0.0f, alturaEnElTronco, 0.0f));
+
+			// Aplicamos la rotaciÃ³n del viento (el pivote debe estar en la base de la hoja)
+			modelLeaf = glm::rotate(modelLeaf, angle, glm::vec3(0.0f, 0.5f, 0.0f));
+
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLeaf));
+			HojasPalmera[i].Draw(lightingShader);
+		}
+
+
+		PalmeraPos = glm::vec3(-8.0f, -1.0f, 8.0f);
+
+		VelocidadTronco = 0.8f; 
+
+		anguloTronco = sin(glfwGetTime() * VelocidadTronco) * AmplitudTronco;
+
+		modelTrunk = glm::mat4(1.0f);
+		modelTrunk = glm::translate(modelTrunk, PalmeraPos);
+
+		modelTrunk = glm::rotate(modelTrunk, anguloTronco, glm::vec3(0.0f, 0.0f, 1.0f));
+		modelTrunk = glm::scale(modelTrunk, glm::vec3(0.10f));
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTrunk));
+		PalmeraTronco.Draw(lightingShader);
+
+		VelocidadViento = 2.8f;
+		AmplitudViento = 0.17f;
+
+		for (size_t i = 0; i < HojasPalmera.size(); i++) {
+			float angle = sin(glfwGetTime() * VelocidadViento + HojasOffset[i]) * AmplitudViento;
+
+			// JERARQUÃA: Heredamos directamente la posiciÃ³n y escala del tronco
+			glm::mat4 modelLeaf = modelTrunk;
+
+		
+			// Aplicamos la rotaciÃ³n del viento (el pivote debe estar en la base de la hoja)
+			modelLeaf = glm::rotate(modelLeaf, angle, glm::vec3(0.0f, 0.5f, 0.0f));
+
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLeaf));
+			HojasPalmera[i].Draw(lightingShader);
+		}
+
 		//Body
 		glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
 
 		glm::mat4 modelDog = glm::mat4(1.0f);
-		
+
 		modelTemp = modelDog = glm::translate(modelDog, dogPos);
 		modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
@@ -746,7 +847,7 @@ int main()
 		modelGradas = glm::scale(modelGradas, glm::vec3(1.75f, 1.75f, 1.75f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGradas));
 		Gradas.Draw(lightingShader);
-		
+
 		// Gradas2 (Stands.obj)
 		glm::mat4 modelGradas2 = glm::mat4(1.0f);
 		modelGradas2 = glm::translate(modelGradas2, glm::vec3(4.5f, 0.05f, 27.5f));
@@ -757,7 +858,7 @@ int main()
 
 		// Cancha (Voleyball_Court.obj)
 		glm::mat4 modelCancha = glm::mat4(1.0f);
-		modelCancha = glm::translate(modelCancha, glm::	vec3(0.0f, 0.003f, 15.0f));
+		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.003f, 15.0f));
 		modelCancha = glm::scale(modelCancha, glm::vec3(0.6f, 1.0f, 0.9f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
@@ -785,7 +886,7 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSombrilla));
 		Sombrilla.Draw(lightingShader);
 
-		// Silla1 (chair1.obj) Café
+		// Silla1 (chair1.obj) Cafï¿½
 		glm::mat4 modelSilla1 = glm::mat4(1.0f);
 		modelSilla1 = glm::translate(modelSilla1, glm::vec3(10.0f, -1.75f, -15.0f));
 		modelSilla1 = glm::rotate(modelSilla1, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -800,6 +901,7 @@ int main()
 		modelSilla2 = glm::scale(modelSilla2, glm::vec3(1.25f, 1.25f, 1.25f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSilla2));
 		Silla2.Draw(lightingShader);
+
 		modelSombrilla = glm::mat4(1.0f);
 		modelSombrilla = glm::translate(modelSombrilla, glm::vec3(-2.0f, -1.5f, -15.0f));
 		modelSombrilla = glm::scale(modelSombrilla, glm::vec3(0.4f, 0.4f, 0.4f));
@@ -838,12 +940,12 @@ int main()
 
 
 
-		// 3. Dibujar el Balón/Dog (Dinámico)
+		// 3. Dibujar el Balï¿½n/Dog (Dinï¿½mico)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-		// ¡AQUÍ ESTÁ LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
+		// ï¿½AQUï¿½ ESTï¿½ LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Dog.Draw(lightingShader);
 
@@ -1021,7 +1123,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 
 	if (keys[GLFW_KEY_2])
 	{
-		dayCycleOn= !dayCycleOn;
+		dayCycleOn = !dayCycleOn;
 	}
 
 	if (keys[GLFW_KEY_3])
@@ -1066,7 +1168,7 @@ void Animation() {
 
 
 	if (AnimDog) {
-		
+
 
 		dogPos.z += 0.005f;
 
@@ -1090,14 +1192,14 @@ void Animation() {
 
 void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& Models, const Shader& shader, const bool condition) {
 
-	GLfloat choppedtime{ time / keyposes.back()};
+	GLfloat choppedtime{ time / keyposes.back() };
 
-	if (!condition || current_animation_time > choppedtime*keyposes.back()) { 
-		current_animation_time = 0; 
+	if (!condition || current_animation_time > choppedtime * keyposes.back()) {
+		current_animation_time = 0;
 		return;
 	}
 
-	for (int i{ 0 }; i < keyposes.size() -1; i++) {
+	for (int i{ 0 }; i < keyposes.size() - 1; i++) {
 		if (current_animation_time >= choppedtime * keyposes[i] && current_animation_time <= choppedtime * keyposes[i + 1]) {
 			Models[i].Draw(shader);
 		}
