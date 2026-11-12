@@ -43,6 +43,11 @@ void MouseCallback(GLFWwindow* window, double xPos, double yPos);
 void DoMovement();
 
 
+
+GLfloat current_animation_time{};
+void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& Models, const Shader& shader, const bool condition);
+
+
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
 int SCREEN_WIDTH, SCREEN_HEIGHT;
@@ -59,6 +64,7 @@ bool active;
 
 float player_rotation {135.0f};
 bool bIsFirstPerson{ false }; 
+bool bIsRunning{ false }; 
 
 // Positions of the point lights
 //Arreglo de luces puntuales
@@ -114,10 +120,6 @@ float vertices[] = {
 };
 
 
-//glm::vec3 SunLight {glm::vec3(0)};
-glm::vec3 SunLight{ 1.0f,1.0f,0.0f };
-
-bool IsNight{ false };
 
 glm::vec3 Light1 = glm::vec3(0);
 
@@ -264,7 +266,20 @@ int main()
 	Model SkyBox((char*)"Models/skysphere.obj");
 
 	//Model chamaca((char*)"Models/MeinGott.glb");
-	Model chamaca((char*)"Models/MeinGott.obj");
+	Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
+	
+
+
+	Model PRun1((char*)"Models/Player/PlayerRun1.obj");
+	Model PRun2((char*)"Models/Player/PlayerRun2.obj");
+	Model PRun3((char*)"Models/Player/PlayerRun3.obj");
+	Model PRun4((char*)"Models/Player/PlayerRun4.obj");
+	Model PRun5((char*)"Models/Player/PlayerRun5.obj");
+	Model PRun6((char*)"Models/Player/PlayerRun6.obj");
+	
+	std::vector<Model> RunModels{ PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
+	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20 };
+
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
 	Model Gradas((char*)"Models/Stands/Stands.obj");
@@ -324,6 +339,8 @@ int main()
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 		TotaldeltaTimes += deltaTime;
+		current_animation_time += deltaTime;
+
 
 		glfwPollEvents();
 		DoMovement();
@@ -338,7 +355,9 @@ int main()
 		btVector3 currentVelocity = playerBody->getLinearVelocity();
 		btVector3 targetVelocity(0.0f, currentVelocity.getY(), 0.0f);
 
-		float speed = 5.0f; // Ajusta la velocidad de caminata
+		float speed = 7.0f; // Ajusta la velocidad de caminata
+		//float speed = 5.0f; // Ajusta la velocidad de caminata
+
 		glm::vec3 moveDir(0.0f);
 
 		// 2. Extraer los vectores direccionales de tu cámara
@@ -588,6 +607,10 @@ int main()
 
 		if (glm::length(moveDir) > 0.2f) {
 			player_rotation = atan2f(moveDir.x, moveDir.z);
+			bIsRunning = true;
+		}
+		else {
+			bIsRunning = false;
 		}
 
 		PlayerModel = glm::rotate(PlayerModel, player_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -595,8 +618,15 @@ int main()
 		PlayerModel = glm::translate(PlayerModel, glm::vec3(0.0f, -1.0f, 0.0f));
 		PlayerModel = glm::scale(PlayerModel, glm::vec3(0.21f, 0.21f, 0.21f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(PlayerModel));
-		chamaca.Draw(lightingShader);
 
+
+		if (bIsRunning && !bIsFirstPerson) { //no dibujar al personaje corriendo en primera persona
+			DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
+		}
+		else  {
+			chamaca.Draw(lightingShader);
+		}
+		
 		// (Opcional: Dibujar tu cubo del VAO estático en el origen)
 		glm::mat4 modelCubo = glm::mat4(1.0f);
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
@@ -842,3 +872,19 @@ void MouseCallback(GLFWwindow* window, double xPos, double yPos)
 }
 
 
+void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& Models, const Shader& shader, const bool condition) {
+
+	GLfloat choppedtime{ time / keyposes.back()};
+
+	if (!condition || current_animation_time > choppedtime*keyposes.back()) { 
+		current_animation_time = 0; 
+		return;
+	}
+
+	for (int i{ 0 }; i < keyposes.size() -1; i++) {
+		if (current_animation_time >= choppedtime * keyposes[i] && current_animation_time <= choppedtime * keyposes[i + 1]) {
+			Models[i].Draw(shader);
+		}
+	}
+
+}
