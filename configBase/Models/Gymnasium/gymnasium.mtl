@@ -41,25 +41,15 @@ d 1.000000
 illum 2
 map_Kd textures/Image_5.jpg
 
-newmtl gym_bleachers_body_mat
+newmtl gym_bleachers_body
 Ns 273.220795
 Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-
-newmtl gym_bleachers_body_mat_0
-Ns 273.220795
-Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
+map_Kd textures/Image_6.jpg
 
 newmtl gym_ceiling_mat
 Ns 61.226547
@@ -101,125 +91,25 @@ d 1.000000
 illum 2
 map_Kd textures/Image_9.jpg
 
-newmtl gym_hanging_light_hardware_mat
+newmtl gym_hanging_light_hardware
 Ns 273.220795
 Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
+map_Kd textures/light_cover.png
 
-newmtl gym_hanging_light_hardware_mat_0
-Ns 273.220795
+newmtl gym_hanging_light_shade
+Ns 691.104126
 Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-
-newmtl gym_hanging_light_hardware_mat_1
-Ns 273.220795
-Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_hardware_mat_2
-Ns 273.220795
-Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_hardware_mat_3
-Ns 273.220795
-Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_hardware_mat_4
-Ns 273.220795
-Ka 1.000000 1.000000 1.000000
-Kd 0.984314 0.984314 0.984314
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_shade_mat
-Ns 312.033386
-Ka 1.000000 1.000000 1.000000
-Kd 0.392157 0.392157 0.392157
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_shade_mat_0
-Ns 312.033386
-Ka 1.000000 1.000000 1.000000
-Kd 0.392157 0.392157 0.392157
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_shade_mat_1
-Ns 312.033386
-Ka 1.000000 1.000000 1.000000
-Kd 0.392157 0.392157 0.392157
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_shade_mat_2
-Ns 312.033386
-Ka 1.000000 1.000000 1.000000
-Kd 0.392157 0.392157 0.392157
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_shade_mat_3
-Ns 312.033386
-Ka 1.000000 1.000000 1.000000
-Kd 0.392157 0.392157 0.392157
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-
-newmtl gym_hanging_light_shade_mat_4
-Ns 312.033386
-Ka 1.000000 1.000000 1.000000
-Kd 0.392157 0.392157 0.392157
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
+map_Kd textures/light_text.png
 
 newmtl gym_hanging_light_tubes_mat
 Ns 0.000000
@@ -271,16 +161,6 @@ d 1.000000
 illum 2
 map_Kd textures/Image_10.jpg
 
-newmtl gym_hanging_light_tubes_mat_4
-Ns 0.000000
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 1.000000
-illum 2
-map_Kd textures/Image_10.jpg
-
 newmtl gym_outlet_mat
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
@@ -300,16 +180,6 @@ Ni 1.500000
 d 1.000000
 illum 2
 map_Kd textures/Image_11.jpg
-
-newmtl gym_skylight_glass_mat
-Ns 1000.000000
-Ka 1.000000 1.000000 1.000000
-Ks 0.500000 0.500000 0.500000
-Ke 0.000000 0.000000 0.000000
-Ni 1.500000
-d 0.330000
-illum 9
-map_Kd textures/Empty.png
 
 newmtl gym_window_frame_mat
 Ns 63.185623

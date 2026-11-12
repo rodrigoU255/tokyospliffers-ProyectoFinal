@@ -270,15 +270,16 @@ int main()
 	
 
 
-	Model PRun1((char*)"Models/Player/PlayerRun1.obj");
-	Model PRun2((char*)"Models/Player/PlayerRun2.obj");
-	Model PRun3((char*)"Models/Player/PlayerRun3.obj");
-	Model PRun4((char*)"Models/Player/PlayerRun4.obj");
-	Model PRun5((char*)"Models/Player/PlayerRun5.obj");
-	Model PRun6((char*)"Models/Player/PlayerRun6.obj");
-	
-	std::vector<Model> RunModels{ PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
-	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20 };
+	//Model PRun1((char*)"Models/Player/PlayerRun1.obj");
+	//Model PRun2((char*)"Models/Player/PlayerRun2.obj");
+	//Model PRun3((char*)"Models/Player/PlayerRun3.obj");
+	//Model PRun4((char*)"Models/Player/PlayerRun4.obj");
+	//Model PRun5((char*)"Models/Player/PlayerRun5.obj");
+	//Model PRun6((char*)"Models/Player/PlayerRun6.obj");
+	//
+	std::vector<Model> RunModels{/* PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6*/};
+	std::vector<int> Run_keyposes{/*0, 2, 8, 11, 13 , 18 ,20 */};
+
 
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
@@ -621,7 +622,7 @@ int main()
 
 
 		if (bIsRunning && !bIsFirstPerson) { //no dibujar al personaje corriendo en primera persona
-			DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
+			//DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
 		}
 		else  {
 			chamaca.Draw(lightingShader);
@@ -633,7 +634,6 @@ int main()
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
-
 
 		// Gradas (Stands.obj)
 		glm::mat4 modelGradas = glm::mat4(1.0f);
@@ -651,14 +651,10 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelGradas2));
 		Gradas.Draw(lightingShader);
 
-
-		
-
-
 		// Cancha (Voleyball_Court.obj)
 		glm::mat4 modelCancha = glm::mat4(1.0f);
-		modelCancha = glm::translate(modelCancha, glm::vec3(0.0f, 0.003f, 15.0f));
-		modelCancha = glm::scale(modelCancha, glm::vec3(1.0f, 1.0f, 1.0f));
+		modelCancha = glm::translate(modelCancha, glm::	vec3(0.0f, 0.003f, 15.0f));
+		modelCancha = glm::scale(modelCancha, glm::vec3(0.6f, 1.0f, 0.9f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
 
