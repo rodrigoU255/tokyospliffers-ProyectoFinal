@@ -287,8 +287,9 @@ int main()
 	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
 
 	Model Gimnasio((char*)"Models/Gymnasium/gymnasium.obj");
+	Model Salvavidas((char*)"Models/Lifeguard/lifeguard.obj");
 
-
+	
 
 	// Al chile no se Bravo administración
 	// --- Cargar Colisión Estática con Bullet Physics ---
@@ -668,6 +669,14 @@ int main()
 		Gimnasio.Draw(lightingShader);
 
 
+		// Salvavidas (lifeguard.obj)
+		glm::mat4 modelSalvavidas = glm::mat4(1.0f);
+		modelSalvavidas = glm::translate(modelSalvavidas, glm::vec3(-10.0f, -1.25f, -15.0f));
+		//modelSalvavidas = glm::rotate(modelSalvavidas, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelSalvavidas = glm::scale(modelSalvavidas, glm::vec3(1.0f, 1.0f, 1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSalvavidas));
+		Salvavidas.Draw(lightingShader);
+
 
 		// 3. Dibujar el Balón/Dog (Dinámico)
 		glEnable(GL_BLEND);
@@ -677,8 +686,6 @@ int main()
 		// ¡AQUÍ ESTÁ LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Dog.Draw(lightingShader);
-
-
 
 		glDisable(GL_BLEND);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
