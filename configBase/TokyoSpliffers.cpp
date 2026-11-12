@@ -69,8 +69,8 @@ bool bIsRunning{ false };
 // Positions of the point lights
 //Arreglo de luces puntuales
 glm::vec3 pointLightPositions[] = {
-	glm::vec3(3.4f, 4.0f, 10.0f),
-	glm::vec3(2.0f, 0.0f, 2.0f),
+	glm::vec3(3.7f, 4.0f, 15.0f),
+	glm::vec3(-3.65f, 4.0f, 15.0f),
 	glm::vec3(-2.0f, 0.0f, -2.0f),
 	glm::vec3(2.0f, 0.0f, -2.0f)
 };
