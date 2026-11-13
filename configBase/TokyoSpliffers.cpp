@@ -121,10 +121,7 @@ float vertices[] = {
 	   -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-
-
 glm::vec3 Light1 = glm::vec3(0);
-
 
 //Anim
 float rotBall = 0.0f;
@@ -228,7 +225,7 @@ int main()
 	btCollisionShape* sphereShape = new btSphereShape(0.25f); // Radio de 0.5
 	btTransform startTransform;
 	startTransform.setIdentity();
-	startTransform.setOrigin(btVector3(0, 20.0f, 0));
+	startTransform.setOrigin(btVector3(-10, 20.0f, 0));
 
 	btScalar mass = 1.0f;
 	btVector3 localInertia(0, 0, 0);
@@ -280,9 +277,7 @@ int main()
 	// GLFW ptions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	// Set this to true so GLEW knows to use a modern approach to retrieving function pointers and extensions
 	glewExperimental = GL_TRUE;
-	// Initialize GLEW to setup the OpenGL Function pointers
 	if (GLEW_OK != glewInit())
 	{
 		std::cout << "Failed to initialize GLEW" << std::endl;
@@ -306,25 +301,17 @@ int main()
 	Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
 
 
-
-
-	//carga modelo de palmera por partes para poder hacer animaciones de las hojas
 	Model PalmeraTronco((char*)"Models/palmera/tronco.obj");
-
 
 	std::vector<Model> HojasPalmera;
 	std::vector<float> HojasOffset;
 
 
-
 	for (int i = 0; i <= 12; i++) {
 		std::string path = "Models/palmera/palm_leaves_palm_leaves_0_00" + std::to_string(i) + ".obj";
-		//std::cout << "Cargando: " << path << std::endl; // <-- Imprime cuál va a cargar
 
-		// Carga el modelo y lo añade al vector
 		HojasPalmera.push_back(Model((char*)path.c_str()));
 
-		// Asigna un desfase matemático único basado en su índice (ej. 0.5f, 1.0f, 1.5f...)
 		HojasOffset.push_back(i * 0.6f);
 	}
 
@@ -339,13 +326,13 @@ int main()
 	std::vector<Model> RunModels{PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
 	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20};
 
-	Model DogBody((char*)"Models/DogBody.obj");
-	Model HeadDog((char*)"Models/HeadDog.obj");
-	Model DogTail((char*)"Models/TailDog.obj");
-	Model F_RightLeg((char*)"Models/F_RightLegDog.obj");
-	Model F_LeftLeg((char*)"Models/F_LeftLegDog.obj");
-	Model B_RightLeg((char*)"Models/B_RightLegDog.obj");
-	Model B_LeftLeg((char*)"Models/B_LeftLegDog.obj");
+	//Model DogBody((char*)"Models/DogBody.obj");
+	//Model HeadDog((char*)"Models/HeadDog.obj");
+	//Model DogTail((char*)"Models/TailDog.obj");
+	//Model F_RightLeg((char*)"Models/F_RightLegDog.obj");
+	//Model F_LeftLeg((char*)"Models/F_LeftLegDog.obj");
+	//Model B_RightLeg((char*)"Models/B_RightLegDog.obj");
+	//Model B_LeftLeg((char*)"Models/B_LeftLegDog.obj");
 
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 
@@ -379,7 +366,6 @@ int main()
 	Model dedosD2((char*)"Models/arbitro/dedosD2.obj");
 
 
-	// --- INICIALIZAR KEYFRAMES EN CERO ---
 	for (int i = 0; i < MAX_FRAMES; i++)
 	{
 		KeyFrame[i].arbitroPosX = 0; KeyFrame[i].arbitroPosY = 0; KeyFrame[i].arbitroPosZ = 0;
@@ -394,10 +380,8 @@ int main()
 		KeyFrame[i].anguloDedos = 0; KeyFrame[i].incAnguloDedos = 0;
 	}
 
-	// --- CONFIGURACIÓN MANUAL DE KEYFRAMES ---
 	FrameIndex = 0;
 
-	// KeyFrame 0 (Pose inicial de reposo)
 	KeyFrame[0].arbitroPosX = 0.0f; KeyFrame[0].arbitroPosY = 0.0f; KeyFrame[0].arbitroPosZ = 0.0f;
 	KeyFrame[0].rotArbitro = 0.0f;
 	KeyFrame[0].anguloTorsoY = 0.0f;
@@ -409,7 +393,6 @@ int main()
 	KeyFrame[0].anguloDedos = 0.0f;
 	FrameIndex++;
 
-	// KeyFrame 1 (Pose intermedia)
 	KeyFrame[1].arbitroPosX = 0.0f; KeyFrame[1].arbitroPosY = 0.0f; KeyFrame[1].arbitroPosZ = 0.0f;
 	KeyFrame[1].rotArbitro = 0.0f;
 	KeyFrame[1].anguloTorsoY = 0.0f;
@@ -421,7 +404,6 @@ int main()
 	KeyFrame[1].anguloDedos = 0.0f;
 	FrameIndex++;
 
-	// KeyFrame 2 (Pose final)
 	KeyFrame[2].arbitroPosX = 0.0f; KeyFrame[2].arbitroPosY = 0.0f; KeyFrame[2].arbitroPosZ = 0.0f;
 	KeyFrame[2].rotArbitro = 0.0f;
 	KeyFrame[2].anguloTorsoY = 0.0f;
@@ -456,7 +438,6 @@ int main()
 	KeyFrame[4].anguloDedos = 0.0f;
 	FrameIndex++;
 
-	// Iniciar la reproducción automática de la animación en bucle
 	if (FrameIndex > 1)
 	{
 		resetElements();
@@ -466,19 +447,7 @@ int main()
 		i_curr_steps = 0;
 	}
 
-	// Al chile no se Bravo administraci�n
-	// --- Cargar Colisi�n Est�tica con Bullet Physics ---
-	// Par�metros: Ruta, Posici�n (X,Y,Z), Rotaci�n (X,Y,Z), Escala (X,Y,Z)
-	/*btRigidBody* GradasCollision{ LoadRigidCollition("Models/Stands/Stands.obj", glm::vec3(0.0f, -0.5f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.3f, 1.3f, 1.3f)) };
-	if (GradasCollision) {
-		dynamicsWorld->addRigidBody(GradasCollision);
-	}*/
-
-
-
-	//Cargas de Colisiones Personalizadas
 	btRigidBody* PlayaCollision{ LoadRigidCollition("Models/sand.obj", glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
-	//ruta del modelo de colision, traslaciones, rotaciones y escalas para la colision
 	if (PlayaCollision) { dynamicsWorld->addRigidBody(PlayaCollision); }
 
 
@@ -489,9 +458,6 @@ int main()
 	btRigidBody* SeaCollision{ LoadRigidCollition("Models/sea.obj", glm::vec3(0.0f,-3.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
 	if (SeaCollision) { dynamicsWorld->addRigidBody(SeaCollision); }
 
-
-
-
 	// First, set the container's VAO (and VBO)
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -499,20 +465,16 @@ int main()
 	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	// Position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	// normal attribute
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// Set texture units
 	lightingShader.Use();
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.difuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.specular"), 1);
 
-	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.21f, 10000.0f); //Renderizado a objetos mas lejanos
-	//glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.21f, 10000.0f); 
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
@@ -531,49 +493,34 @@ int main()
 		Animation();
 		AnimationKeyFrames();
 
-		//----------------------------------------------------------------------------------------------------
-
-
-
-
 		//MOVEMENT
-		// 1. Obtener la velocidad f�sica actual (vital para preservar la ca�da de la gravedad en Y)
 		btVector3 currentVelocity = playerBody->getLinearVelocity();
 		btVector3 targetVelocity(0.0f, currentVelocity.getY(), 0.0f);
 
 		float speed = 7.0f; // Ajusta la velocidad de caminata
-		//float speed = 5.0f; // Ajusta la velocidad de caminata
 
 		glm::vec3 moveDir(0.0f);
 
-		// 2. Extraer los vectores direccionales de tu c�mara
 		glm::vec3 camFront = camera.GetFront();
-		camFront.y = 0.0f; // Anular inclinaci�n vertical
+		camFront.y = 0.0f;
 		camFront = glm::normalize(camFront);
 		glm::vec3 camRight = glm::normalize(glm::cross(camFront, glm::vec3(0.0f, 1.0f, 0.0f)));
 
-		// 3. Leer las teclas directamente del arreglo que ya tienes configurado
 		if (keys[GLFW_KEY_W]) moveDir += camFront;
 		if (keys[GLFW_KEY_S]) moveDir -= camFront;
 		if (keys[GLFW_KEY_A]) moveDir -= camRight;
 		if (keys[GLFW_KEY_D]) moveDir += camRight;
 
-		// 4. Aplicar el movimiento si hay teclas presionadas
 		if (glm::length(moveDir) > 0.0f) {
 			moveDir = glm::normalize(moveDir);
 			targetVelocity.setX(moveDir.x * speed);
 			targetVelocity.setZ(moveDir.z * speed);
 
-			// Despertar el cuerpo: Bullet desactiva objetos quietos para ahorrar CPU. 
-			// Si no lo despiertas, el jugador se congelar� tras unos segundos inactivo.
 			playerBody->activate(true);
 		}
 
 
-		// 4.5 L�gica de Salto con Raycast
 		btVector3 startPos = playerBody->getWorldTransform().getOrigin();
-		// Disparamos un rayo hacia abajo. 
-		// La c�psula mide 2.0 de alto (1.0 de centro a pies) + 0.1 extra de margen para detectar el suelo
 		btVector3 endPos = startPos - btVector3(0.0f, 1.4f, 0.0f);
 
 		btCollisionWorld::ClosestRayResultCallback rayCallback(startPos, endPos);
@@ -590,25 +537,18 @@ int main()
 		}
 
 
-
-		// 5. Inyectar la velocidad final al colisionador
 		playerBody->setLinearVelocity(targetVelocity);
 
 
 
 
 		dynamicsWorld->stepSimulation(deltaTime, 10);
-		// 2. Obtener la nueva transformaci�n (posici�n/rotaci�n) del bal�n
 
 		btTransform trans;
 
 
 		sphereBody->getMotionState()->getWorldTransform(trans);
 
-		// PRUEBA SIN GR�FICOS: Descomenta esto para ver c�mo los n�meros caen en la consola
-		// std::cout << "Altura Y del balon: " << trans.getOrigin().getY() << std::endl;
-
-		// 3. Convertir la f�sica directamente a matriz de GLM
 		float matrix[16];
 		trans.getOpenGLMatrix(matrix);
 		glm::mat4 model = glm::make_mat4(matrix);
@@ -619,21 +559,12 @@ int main()
 		playerBody->getMotionState()->getWorldTransform(trans);
 		btVector3 pos = trans.getOrigin();
 
-		// Calcular una posici�n para la c�mara (ej. 3 metros atr�s y 2 metros arriba del personaje)
 		glm::vec3 offset = bIsFirstPerson ? glm::vec3(0.0f, 0.8f, 0.0f) : (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		//glm::vec3 offset = (camFront * -2.5f) + glm::vec3(0.0f, 1.0f, 0.0f);
 		glm::vec3 targetCameraPos = glm::vec3(pos.x(), pos.y(), pos.z()) + offset;
-
-		// Tu clase Camera asume tener un m�todo o propiedad para asignar la posici�n.
-		// Si tu variable interna de c�mara es privada y no tiene setter, tendr�s que agregarle 
-		// un m�todo SetPosition(glm::vec3 newPos) en Camera.h.
 		camera.SetPosition(targetCameraPos);
 
-
-
 		//----------------------------------------------------------------------------------------------------
-
-
 		// Check if any events have been activiated (key pressed, mouse moved etc.) and call corresponding response functions
 
 		// Clear the colorbuffer
@@ -643,9 +574,7 @@ int main()
 		// OpenGL options
 		glEnable(GL_DEPTH_TEST);
 
-
 		//Load Model
-
 
 		// Use cooresponding shader when setting uniforms/drawing objects
 		lightingShader.Use();
@@ -656,34 +585,14 @@ int main()
 		GLint viewPosLoc = glGetUniformLocation(lightingShader.Program, "viewPos");
 		glUniform3f(viewPosLoc, camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
 
-
-		// Directional light
-		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);  //Direction  de
-		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), SunLight.x, SunLight.y, SunLight.z);
-		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
-		//glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
-
 		dayCycle = dayCycleOn ? (sin(TotaldeltaTimes * 0.2f) * 0.5f + 0.5f) : 0.0f;
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.direction"), -0.2f, -1.0f, -0.3f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.ambient"), 1.0f - 0.95f * dayCycle, 1.0f - 0.95f * dayCycle, 1.0f - 0.85f * dayCycle);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.diffuse"), 0.0f, 0.0f, 0.0f);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "dirLight.specular"), 0.0f, 0.0f, 0.0f);
 
-
 		//Point light 1
 		glm::vec3 lightColor;
-		lightColor.x = abs(sin(glfwGetTime() * Light1.x));
-		lightColor.y = abs(sin(glfwGetTime() * Light1.y));
-		lightColor.z = sin(glfwGetTime() * Light1.z);
-
-
-		/*glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].ambient"), lightColor.x, lightColor.y, lightColor.z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].diffuse"), lightColor.x, lightColor.y, lightColor.z);
-		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].specular"), 1.0f, 1.0f, 0.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].constant"), 1.0f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].linear"), 0.045f);
-		glUniform1f(glGetUniformLocation(lightingShader.Program, "pointLights[0].quadratic"), 0.075f);*/
 
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].position"), pointLightPositions[0].x, pointLightPositions[0].y, pointLightPositions[0].z);
 		glUniform3f(glGetUniformLocation(lightingShader.Program, "pointLights[0].ambient"), gymLights*0.3f, gymLights*0.3f, 0.0f);
@@ -752,25 +661,15 @@ int main()
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 
-		//glm::mat4 model(1);
-
-
-		//Carga de modelo 
-		// 
-		// 1. Configurar vista y matrices generales
-		//view = camera.GetViewMatrix();
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-		// 2. Dibujar el Piso (Est�tico)
 		glm::mat4 modelPiso = glm::mat4(1.0f);
-		// La f�sica del suelo la pusiste en Y = -1.0f, as� que bajamos el modelo visual para que coincidan
+
 		modelPiso = glm::translate(modelPiso, glm::vec3(0.0f, /*-1.0f*/0.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelPiso));
 		Piso.Draw(lightingShader);
-		//PisoPlaya.Draw(lightingShader);
+
 		SkyBox.Draw(lightingShader);
-
-
 
 		//btTransform trans;
 		playerBody->getMotionState()->getWorldTransform(trans);
@@ -778,8 +677,6 @@ int main()
 		trans.getOpenGLMatrix(matrix);
 		glm::mat4 PlayerModel = glm::make_mat4(matrix);
 
-		// Compensaci�n visual: Bajamos el modelo la mitad de la altura total de la c�psula (1.0 unidad) 
-		// para que los pies del modelo visual toquen el fondo del colisionador invisible.
 
 		if (glm::length(moveDir) > 0.2f) {
 			player_rotation = atan2f(moveDir.x, moveDir.z);
@@ -796,60 +693,40 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(PlayerModel));
 
 
-		if (bIsRunning && !bIsFirstPerson) { //no dibujar al personaje corriendo en primera persona
+		if (bIsRunning && !bIsFirstPerson) {
 			DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
 		}
 		else {
 			chamaca.Draw(lightingShader);
 		}
 
-		//// (Opcional: Dibujar tu cubo del VAO est�tico en el origen)
-		//glm::mat4 modelCubo = glm::mat4(1.0f);
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCubo));
-		//glBindVertexArray(VAO);
-		//glDrawArrays(GL_TRIANGLES, 0, 36);
-		//glBindVertexArray(0);
-
 
 		glm::vec3 PalmeraPos = glm::vec3(10.0f, -1.0f, -5.0f);
 
-		// 1. Dibujar el Tronco (Matriz Padre)
-		float AmplitudTronco = 0.045f; // Muy pequeño para que apenas se note
-		float VelocidadTronco = 0.8f;  // Más lento que las hojas (masa pesada)
+		float AmplitudTronco = 0.045f;
+		float VelocidadTronco = 0.8f;
 
-		// 1. Calcular la rotación y dibujar el Tronco (Matriz Padre)
 		float anguloTronco = sin(glfwGetTime() * VelocidadTronco) * AmplitudTronco;
 
 		glm::mat4 modelTrunk = glm::mat4(1.0f);
 		modelTrunk = glm::translate(modelTrunk, PalmeraPos);
 
-		// Si el origen del tronco está en su base (el suelo), al rotarlo 
-		// se inclinará sutilmente simulando flexibilidad.
-		// Puedes cambiar el eje (1.0f, 0.0f, 0.0f) o (0.0f, 0.0f, 1.0f) según hacia dónde quieras que se incline.
+
 		modelTrunk = glm::rotate(modelTrunk, anguloTronco, glm::vec3(0.0f, 0.0f, 1.0f));
 
-		// Aplicamos la escala general de la palmera
 		modelTrunk = glm::scale(modelTrunk, glm::vec3(0.15f));
 
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelTrunk));
 		PalmeraTronco.Draw(lightingShader);
 
-		// Parámetros generales del viento
 		float VelocidadViento = 2.5f;
 		float AmplitudViento = 0.15f;
 
-		// 2. Dibujar y animar todas las hojas usando Jerarquía
 		for (size_t i = 0; i < HojasPalmera.size(); i++) {
 			float angle = sin(glfwGetTime() * VelocidadViento + HojasOffset[i]) * AmplitudViento;
 
-			// JERARQUÍA: Heredamos directamente la posición y escala del tronco
 			glm::mat4 modelLeaf = modelTrunk;
 
-			// (Opcional) Si tus hojas se exportaron centradas en el origen y necesitas 
-			// subirlas a la punta del tronco, puedes aplicar una traslación local aquí:
-			// modelLeaf = glm::translate(modelLeaf, glm::vec3(0.0f, alturaEnElTronco, 0.0f));
-
-			// Aplicamos la rotación del viento (el pivote debe estar en la base de la hoja)
 			modelLeaf = glm::rotate(modelLeaf, angle, glm::vec3(0.0f, 0.5f, 0.0f));
 
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLeaf));
@@ -878,92 +755,82 @@ int main()
 		for (size_t i = 0; i < HojasPalmera.size(); i++) {
 			float angle = sin(glfwGetTime() * VelocidadViento + HojasOffset[i]) * AmplitudViento;
 
-			// JERARQUÍA: Heredamos directamente la posición y escala del tronco
 			glm::mat4 modelLeaf = modelTrunk;
 
-		
-			// Aplicamos la rotación del viento (el pivote debe estar en la base de la hoja)
 			modelLeaf = glm::rotate(modelLeaf, angle, glm::vec3(0.0f, 0.5f, 0.0f));
 
 			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelLeaf));
 			HojasPalmera[i].Draw(lightingShader);
 		}
 
-		//Body
-		glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
+		//glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
 
-		glm::mat4 modelDog = glm::mat4(1.0f);
+		//glm::mat4 modelDog = glm::mat4(1.0f);
 
-		modelTemp = modelDog = glm::translate(modelDog, dogPos);
-		modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		DogBody.Draw(lightingShader);
-		//Head
-		modelDog = modelTemp;
-		modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.093f, 0.208f));
-		modelDog = glm::rotate(modelDog, glm::radians(head), glm::vec3(0.0f, 0.0f, 1.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		HeadDog.Draw(lightingShader);
-		//Tail 
-		modelDog = modelTemp;
-		modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.026f, -0.288f));
-		modelDog = glm::rotate(modelDog, glm::radians(tail), glm::vec3(0.0f, 0.0f, -1.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		DogTail.Draw(lightingShader);
-		//Front Left Leg
-		modelDog = modelTemp;
-		modelDog = glm::translate(modelDog, glm::vec3(0.112f, -0.044f, 0.074f));
-		modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		F_LeftLeg.Draw(lightingShader);
-		//Front Right Leg
-		modelDog = modelTemp;
-		modelDog = glm::translate(modelDog, glm::vec3(-0.111f, -0.055f, 0.074f));
-		modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		F_RightLeg.Draw(lightingShader);
-		//Back Left Leg
-		modelDog = modelTemp;
-		modelDog = glm::translate(modelDog, glm::vec3(0.082f, -0.046, -0.218));
-		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		B_LeftLeg.Draw(lightingShader);
-		//Back Right Leg
-		modelDog = modelTemp;
-		modelDog = glm::translate(modelDog, glm::vec3(-0.083f, -0.057f, -0.231f));
-		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		B_RightLeg.Draw(lightingShader);
-		
+		//modelTemp = modelDog = glm::translate(modelDog, dogPos);
+		//modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//DogBody.Draw(lightingShader);
+		////Head
+		//modelDog = modelTemp;
+		//modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.093f, 0.208f));
+		//modelDog = glm::rotate(modelDog, glm::radians(head), glm::vec3(0.0f, 0.0f, 1.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//HeadDog.Draw(lightingShader);
+		////Tail 
+		//modelDog = modelTemp;
+		//modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.026f, -0.288f));
+		//modelDog = glm::rotate(modelDog, glm::radians(tail), glm::vec3(0.0f, 0.0f, -1.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//DogTail.Draw(lightingShader);
+		////Front Left Leg
+		//modelDog = modelTemp;
+		//modelDog = glm::translate(modelDog, glm::vec3(0.112f, -0.044f, 0.074f));
+		//modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//F_LeftLeg.Draw(lightingShader);
+		////Front Right Leg
+		//modelDog = modelTemp;
+		//modelDog = glm::translate(modelDog, glm::vec3(-0.111f, -0.055f, 0.074f));
+		//modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(1.0f, 0.0f, 0.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//F_RightLeg.Draw(lightingShader);
+		////Back Left Leg
+		//modelDog = modelTemp;
+		//modelDog = glm::translate(modelDog, glm::vec3(0.082f, -0.046, -0.218));
+		//modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(1.0f, 0.0f, 0.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//B_LeftLeg.Draw(lightingShader);
+		////Back Right Leg
+		//modelDog = modelTemp;
+		//modelDog = glm::translate(modelDog, glm::vec3(-0.083f, -0.057f, -0.231f));
+		//modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		//B_RightLeg.Draw(lightingShader);
+		//
 		// Sea (sea.obj)
 		glm::mat4 modelSea = glm::mat4(1.0f);
 		modelSea = glm::translate(modelSea, glm::vec3(0.0f, -2.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSea));
 		Sea.Draw(lightingShader);
 
-		// --- DIBUJADO JERÁRQUICO CORREGIDO DEL ÁRBITRO ---
 		glm::vec3 escalaArbitro = glm::vec3(0.25f);
 
-		// --- OFFSETS DE ARTICULACIONES ---
 		glm::vec3 offsetHombroIzq = glm::vec3(0.4f, 7.0f, 0.0f);
 		glm::vec3 offsetHombroDer = glm::vec3(-0.4f, 7.0f, 0.0f);
-		glm::vec3 offsetCodoD = glm::vec3(3.0f, -1.5f, -50.0f); // <--- Ajusta este offset si el codo se separa del bicep
+		glm::vec3 offsetCodoD = glm::vec3(3.0f, -1.5f, -50.0f);
 
-		// 1. TORSO (Matriz Raíz Global)
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(arbitroPosX, arbitroPosY, arbitroPosZ));
 		model = glm::scale(model, escalaArbitro);
 		model = glm::rotate(model, glm::radians(rotArbitro), glm::vec3(0.0f, 1.0f, 0.0f));
 		model = glm::rotate(model, glm::radians(anguloTorsoY), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		// Guardamos la matriz base del torso
 		glm::mat4 modelTorsoTemp = model;
 
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		TorsoPC.Draw(lightingShader);
 
-
-		// 2. BRAZO IZQUIERDO (Con pivote ajustado al hombro)
 		model = modelTorsoTemp;
 		model = glm::translate(model, offsetHombroIzq);
 		model = glm::rotate(model, glm::radians(anguloBrazoIzq), glm::vec3(1.0f, 0.5f, 0.0f));
@@ -972,10 +839,7 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		brazoIzq.Draw(lightingShader);
 
-
-		// 3. EXTREMIDAD DERECHA (Cadena Jerárquica Estricta)
-
-		// A. BicepD (Hereda del Torso aplicando el offset del hombro derecho)
+		// A. BicepD 
 		model = modelTorsoTemp;
 		model = glm::translate(model, offsetHombroDer);
 		model = glm::rotate(model, glm::radians(anguloBicepD), glm::vec3(5.0f, 0.4f, 12.0f));
@@ -986,18 +850,16 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		BicepD.Draw(lightingShader);
 
-
-		// B. codoD (Hereda de BicepD usando su propio offset de articulación)
+		// B. codoD
 		model = modelBicepTemp;
-		model = glm::translate(model, offsetCodoD);                                       // 1. Nos movemos a la unión del codo
-		model = glm::rotate(model, glm::radians(anguloCodoD), glm::vec3(0.0f, 0.0f, 1.0f)); // 2. Rotamos el codo
-		model = glm::translate(model, -offsetCodoD);                                      // 3. Regresamos para alinear la malla
+		model = glm::translate(model, offsetCodoD);                                      
+		model = glm::rotate(model, glm::radians(anguloCodoD), glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::translate(model, -offsetCodoD);                                      
 
 		glm::mat4 modelCodoTemp = model; // Guardamos el estado base del codo
 
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		codoD.Draw(lightingShader);
-
 
 		// C. AnteBrazoD (Hereda de codoD)
 		model = modelCodoTemp;
@@ -1007,7 +869,6 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		AnteBrazoD.Draw(lightingShader);
 
-
 		// D. manoD (Hereda de AnteBrazoD)
 		model = modelAnteBrazoTemp;
 		model = glm::rotate(model, glm::radians(anguloManoD), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1015,7 +876,6 @@ int main()
 
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		manoD.Draw(lightingShader);
-
 
 		// E. Dedos D1 y D2 (Heredan de manoD)
 		model = modelManoTemp;
@@ -1027,7 +887,6 @@ int main()
 		model = glm::rotate(model, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		dedosD2.Draw(lightingShader);
-
 
 		//Mountein (mounteindew.obj)
 		glm::mat4 modelMountein = glm::mat4(1.0f);
@@ -1190,7 +1049,6 @@ int main()
 
 		glDisable(GL_BLEND);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-
 		
 
 		// Reflector (spotlight.obj)
@@ -1202,21 +1060,17 @@ int main()
 
 
 
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+		//glEnable(GL_BLEND);
+		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		Volleyball_Ball.Draw(lightingShader);
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//Volleyball_Ball.Draw(lightingShader);
 
-		glDisable(GL_BLEND);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+		//glDisable(GL_BLEND);
+		//glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-
-
-		// Also draw the lamp object, again binding the appropriate shader
 		lampShader.Use();
-		// Get location objects for the matrices on the lamp shader (these could be different on a different shader)
 		modelLoc = glGetUniformLocation(lampShader.Program, "model");
 		viewLoc = glGetUniformLocation(lampShader.Program, "view");
 		projLoc = glGetUniformLocation(lampShader.Program, "projection");
@@ -1286,11 +1140,6 @@ void DoMovement()
 
 
 	}*/
-
-	if (keys[GLFW_KEY_L])
-	{
-		play = true;
-	}
 }
 
 // Is called whenever a key is pressed/released via GLFW
@@ -1339,6 +1188,10 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 		gymSpotLight = !gymSpotLight;
 	}
 
+	if (keys[GLFW_KEY_L])
+	{
+		play = !play;
+	}
 }
 
 void MouseCallback(GLFWwindow* window, double xPos, double yPos)
