@@ -222,20 +222,30 @@ int main()
 	btRigidBody* groundBody = new btRigidBody(groundInfo);
 	dynamicsWorld->addRigidBody(groundBody);
 
-	btCollisionShape* sphereShape = new btSphereShape(0.25f); // Radio de 0.5
+
+	//Inicializacion de colisiones de la pelota
+	btCollisionShape* sphereShape = new btSphereShape(0.3f); // Radio de 1.0
 	btTransform startTransform;
 	startTransform.setIdentity();
-	startTransform.setOrigin(btVector3(-10, 20.0f, 0));
+	startTransform.setOrigin(btVector3(0, 20.0f, 10)); // Empieza cayendo desde 20 unidades arriba
 
-	btScalar mass = 1.0f;
+	btScalar mass = 50.0f;
 	btVector3 localInertia(0, 0, 0);
-	sphereShape->calculateLocalInertia(mass, localInertia); 
+	sphereShape->calculateLocalInertia(mass, localInertia); // Calcula cómo debe rodar/rebotar
 
 	btDefaultMotionState* sphereMotionState = new btDefaultMotionState(startTransform);
 	btRigidBody::btRigidBodyConstructionInfo sphereInfo(mass, sphereMotionState, sphereShape, localInertia);
 	btRigidBody* sphereBody = new btRigidBody(sphereInfo);
+
+	
 	dynamicsWorld->addRigidBody(sphereBody);
 
+	btVector3 initialAngularVelocity = btVector3(10.0f, 0.0f, 0.0f);
+	sphereBody->setAngularVelocity(initialAngularVelocity);
+
+	sphereBody->activate(true);
+
+	//Inicializacion de colisiones del jugador
 	btCollisionShape* playerShape = new btCapsuleShape(0.5f, 1.0f);
 
 	btScalar playerMass = 75.0f;
@@ -291,7 +301,7 @@ int main()
 	Shader lampShader("Shader/lamp.vs", "Shader/lamp.frag");
 
 	//Model Dog((char*)"Models/RedDog.obj");
-	Model Volleyball_Ball((char*)"Models/Ball/VolleyBall_Ball.obj");
+	Model Dog((char*)"Models/Ball/VolleyBall_Ball.obj");
 	Model Piso((char*)"Models/sand.obj");
 	Model PisoPlaya((char*)"Models/sand.obj");
 
@@ -814,78 +824,83 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSea));
 		Sea.Draw(lightingShader);
 
+
+		//ARBITRO:
+
+		glm::mat4 modelArbitro = glm::mat4(1.0f);
+
 		glm::vec3 escalaArbitro = glm::vec3(0.25f);
 
 		glm::vec3 offsetHombroIzq = glm::vec3(0.4f, 7.0f, 0.0f);
 		glm::vec3 offsetHombroDer = glm::vec3(-0.4f, 7.0f, 0.0f);
 		glm::vec3 offsetCodoD = glm::vec3(3.0f, -1.5f, -50.0f);
 
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, glm::vec3(arbitroPosX, arbitroPosY, arbitroPosZ));
-		model = glm::scale(model, escalaArbitro);
-		model = glm::rotate(model, glm::radians(rotArbitro), glm::vec3(0.0f, 1.0f, 0.0f));
-		model = glm::rotate(model, glm::radians(anguloTorsoY), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelArbitro = glm::mat4(1.0f);
+		modelArbitro = glm::translate(modelArbitro, glm::vec3(arbitroPosX, arbitroPosY, arbitroPosZ));
+		modelArbitro = glm::scale(modelArbitro, escalaArbitro);
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(rotArbitro), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloTorsoY), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		glm::mat4 modelTorsoTemp = model;
+		glm::mat4 modelTorsoTemp = modelArbitro;
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		TorsoPC.Draw(lightingShader);
 
-		model = modelTorsoTemp;
-		model = glm::translate(model, offsetHombroIzq);
-		model = glm::rotate(model, glm::radians(anguloBrazoIzq), glm::vec3(1.0f, 0.5f, 0.0f));
-		model = glm::translate(model, -offsetHombroIzq);
+		modelArbitro = modelTorsoTemp;
+		modelArbitro = glm::translate(modelArbitro, offsetHombroIzq);
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloBrazoIzq), glm::vec3(1.0f, 0.5f, 0.0f));
+		modelArbitro = glm::translate(modelArbitro, -offsetHombroIzq);
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		brazoIzq.Draw(lightingShader);
 
 		// A. BicepD 
-		model = modelTorsoTemp;
-		model = glm::translate(model, offsetHombroDer);
-		model = glm::rotate(model, glm::radians(anguloBicepD), glm::vec3(5.0f, 0.4f, 12.0f));
-		model = glm::translate(model, -offsetHombroDer);
+		modelArbitro = modelTorsoTemp;
+		modelArbitro = glm::translate(modelArbitro, offsetHombroDer);
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloBicepD), glm::vec3(5.0f, 0.4f, 12.0f));
+		modelArbitro = glm::translate(modelArbitro, -offsetHombroDer);
 
-		glm::mat4 modelBicepTemp = model; // Guardamos el estado base del bicep
+		glm::mat4 modelBicepTemp = modelArbitro; // Guardamos el estado base del bicep
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		BicepD.Draw(lightingShader);
 
 		// B. codoD
-		model = modelBicepTemp;
-		model = glm::translate(model, offsetCodoD);                                      
-		model = glm::rotate(model, glm::radians(anguloCodoD), glm::vec3(0.0f, 0.0f, 1.0f));
-		model = glm::translate(model, -offsetCodoD);                                      
+		modelArbitro = modelBicepTemp;
+		modelArbitro = glm::translate(modelArbitro, offsetCodoD);
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloCodoD), glm::vec3(0.0f, 0.0f, 1.0f));
+		modelArbitro = glm::translate(modelArbitro, -offsetCodoD);
 
-		glm::mat4 modelCodoTemp = model; // Guardamos el estado base del codo
+		glm::mat4 modelCodoTemp = modelArbitro; // Guardamos el estado base del codo
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		codoD.Draw(lightingShader);
 
 		// C. AnteBrazoD (Hereda de codoD)
-		model = modelCodoTemp;
-		model = glm::rotate(model, glm::radians(anguloAnteBrazoD), glm::vec3(1.0f, 0.0f, 0.0f));
-		glm::mat4 modelAnteBrazoTemp = model;
+		modelArbitro = modelCodoTemp;
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloAnteBrazoD), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 modelAnteBrazoTemp = modelArbitro;
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		AnteBrazoD.Draw(lightingShader);
 
 		// D. manoD (Hereda de AnteBrazoD)
-		model = modelAnteBrazoTemp;
-		model = glm::rotate(model, glm::radians(anguloManoD), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 modelManoTemp = model;
+		modelArbitro = modelAnteBrazoTemp;
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloManoD), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 modelManoTemp = modelArbitro;
 
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		manoD.Draw(lightingShader);
 
 		// E. Dedos D1 y D2 (Heredan de manoD)
-		model = modelManoTemp;
-		model = glm::rotate(model, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		modelArbitro = modelManoTemp;
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		dedosD1.Draw(lightingShader);
 
-		model = modelManoTemp;
-		model = glm::rotate(model, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		modelArbitro = modelManoTemp;
+		modelArbitro = glm::rotate(modelArbitro, glm::radians(anguloDedos), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelArbitro));
 		dedosD2.Draw(lightingShader);
 
 		//Mountein (mounteindew.obj)
@@ -1059,15 +1074,17 @@ int main()
 		Reflector.Draw(lightingShader);
 
 
+		// 3. Dibujar el Balón/Dog (Dinámico)
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-		//glEnable(GL_BLEND);
-		//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		//glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
+		// ¡AQUÍ ESTÁ LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		Dog.Draw(lightingShader);
 
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		//Volleyball_Ball.Draw(lightingShader);
+		glDisable(GL_BLEND);
 
-		//glDisable(GL_BLEND);
 		//glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
 		lampShader.Use();
