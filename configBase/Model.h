@@ -27,6 +27,19 @@
 
 using namespace std;
 
+
+
+
+
+struct BoneInfo
+{
+	int id;
+	glm::mat4 offset;
+};
+
+GLint TextureFromEmbedded(const aiTexture* embeddedTex);
+
+
 GLint TextureFromFile(const char *path, string directory);
 
 class Model
@@ -34,9 +47,9 @@ class Model
 public:
 	/*  Functions   */
 	// Constructor, expects a filepath to a 3D model.
-	Model(GLchar *path)
+	Model(GLchar *path, bool bIsFlippedUV = false)
 	{
-		this->loadModel(path);
+		this->loadModel(path,bIsFlippedUV);
 	}
 
 	// Draws the model, and thus all its meshes
@@ -48,6 +61,15 @@ public:
 		}
 	}
 
+
+
+	std::map<std::string, BoneInfo> m_BoneInfoMap;
+	int m_BoneCounter = 0;
+
+	auto& GetBoneInfoMap() { return m_BoneInfoMap; }
+	int& GetBoneCount() { return m_BoneCounter; }
+
+
 private:
 	/*  Model Data  */
 	vector<Mesh> meshes;
@@ -56,10 +78,27 @@ private:
 
 										/*  Functions   */
 										// Loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-	void loadModel(string path)
+	void loadModel(string path, bool bIsFlippedUV)
 	{
 
-		const aiScene* scene = aiImportFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+		//const aiScene* scene = aiImportFile(path.c_str(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+		//const aiScene* scene = aiImportFile(path.c_str(),
+		//	aiProcess_Triangulate |
+		//	//aiProcess_FlipUVs |
+		//	aiProcess_GenSmoothNormals |
+		//	aiProcess_LimitBoneWeights
+		//);
+
+		unsigned int flags = aiProcess_Triangulate |
+			aiProcess_GenSmoothNormals |
+			aiProcess_LimitBoneWeights;
+
+		if (!bIsFlippedUV)
+		{
+			flags |= aiProcess_FlipUVs;
+		}
+
+		const aiScene* scene = aiImportFile(path.c_str(), flags);
 
 		// Check for errors
 		if (!scene || scene->mFlags == AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -69,7 +108,9 @@ private:
 		}
 
 		// Retrieve the directory path of the filepath
-		this->directory = path.substr(0, path.find_last_of('/'));
+		size_t lastSlash = path.find_last_of("/\\");
+		this->directory = (lastSlash != std::string::npos) ? path.substr(0, lastSlash) : ".";
+		//this->directory = path.substr(0, path.find_last_of('/'));
 
 		// Process ASSIMP's root node recursively
 		this->processNode(scene->mRootNode, scene);
@@ -194,21 +235,23 @@ private:
 			// Normal: texture_normalN
 
 			// 1. Diffuse maps
-			vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+			vector<Texture> diffuseMaps = this->loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse", scene);
 			textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
 			// 2. Specular maps
-			vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+			vector<Texture> specularMaps = this->loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular", scene);
 			textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
 		}
 
 		// Return a mesh object created from the extracted mesh data
+
+		ExtractBoneWeightForVertices(vertices, mesh, scene);
 		return Mesh(vertices, indices, textures);
 	}
 
 	// Checks all material textures of a given type and loads the textures if they're not loaded yet.
 	// The required info is returned as a Texture struct.
-	vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
+	vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName, const aiScene* scene)
 	{
 		vector<Texture> textures;
 
@@ -234,7 +277,21 @@ private:
 			if (!skip)
 			{   // If texture hasn't been loaded already, load it
 				Texture texture;
-				texture.id = TextureFromFile(str.C_Str(), this->directory);
+				std::string texPath = str.C_Str();
+
+				// Las texturas embebidas en .glb/.fbx llegan con el formato "*0", "*1", etc.
+				if (!texPath.empty() && texPath[0] == '*')
+				{
+					int texIndex = std::stoi(texPath.substr(1));
+					if (texIndex >= 0 && texIndex < static_cast<int>(scene->mNumTextures))
+					{
+						texture.id = TextureFromEmbedded(scene->mTextures[texIndex]);
+					}
+				}
+				else
+				{
+					texture.id = TextureFromFile(str.C_Str(), this->directory);
+				}
 				texture.type = typeName;
 				texture.path = str;
 				textures.push_back(texture);
@@ -245,39 +302,132 @@ private:
 
 		return textures;
 	}
-};
 
-GLint TextureFromFile(const char *path, string directory)
-{
-	//Generate texture ID and load texture data
-	string filename = string(path);
-	filename = directory + '/' + filename;
-	GLuint textureID;
-	glGenTextures(1, &textureID);
-
-	int width, height, channels;
-
-	unsigned char *image = SOIL_load_image(filename.c_str(), &width, &height, &channels, SOIL_LOAD_AUTO);
-
-	GLenum format = GL_RGB;
-	if (channels == 4) { 
-		format =  GL_RGBA;
+	void SetVertexBoneData(Vertex& vertex, int boneID, float weight)
+	{
+		for (int i = 0; i < MAX_BONE_INFLUENCE; ++i)
+		{
+			if (vertex.m_BoneIDs[i] < 0)
+			{
+				vertex.m_Weights[i] = weight;
+				vertex.m_BoneIDs[i] = boneID;
+				break;
+			}
+		}
 	}
 
-	// Assign texture to ID
+	void ExtractBoneWeightForVertices(std::vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+	{
+		for (unsigned int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+		{
+			int boneID = -1;
+			std::string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+
+			if (m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end())
+			{
+				if (m_BoneCounter >= 100) continue; // Límite de MAX_BONES en el shader
+
+				BoneInfo newBoneInfo;
+				newBoneInfo.id = m_BoneCounter;
+
+				aiMatrix4x4 from = mesh->mBones[boneIndex]->mOffsetMatrix;
+				glm::mat4 to;
+				to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+				to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+				to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+				to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+				newBoneInfo.offset = to;
+
+				m_BoneInfoMap[boneName] = newBoneInfo;
+				boneID = m_BoneCounter;
+				m_BoneCounter++;
+			}
+			else
+			{
+				boneID = m_BoneInfoMap[boneName].id;
+			}
+
+			auto weights = mesh->mBones[boneIndex]->mWeights;
+			int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+			for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+			{
+				int vertexId = weights[weightIndex].mVertexId;
+				float weight = weights[weightIndex].mWeight;
+				if (vertexId < vertices.size() && weight > 0.0f)
+				{
+					SetVertexBoneData(vertices[vertexId], boneID, weight);
+				}
+			}
+		}
+	}
+};
+
+GLint TextureFromFile(const char* path, string directory) {
+	string filename = string(path);
+	// Limpiar prefijos URI que a veces deja Assimp al leer COLLADA (.dae)
+	if (filename.find("file:///") == 0) filename = filename.substr(8);
+	else if (filename.find("file://") == 0) filename = filename.substr(7);
+
+	string fullPath = (directory == "." || directory.empty()) ? filename : (directory + "/" + filename);
+
+	int width, height, channels;
+	unsigned char* image = SOIL_load_image(fullPath.c_str(), &width, &height, &channels, SOIL_LOAD_RGBA);
+	if (!image)
+	{
+		std::cout << "ERROR::TEXTURA:: No se pudo abrir: " << fullPath
+			<< " | SOIL: " << SOIL_last_result() << std::endl;
+		return 0;
+	}
+
+	std::cout << "OK::TEXTURA cargada: " << fullPath << " (" << width << "x" << height << ")" << std::endl;
+
+	GLuint textureID;
+	glGenTextures(1, &textureID);
 	glBindTexture(GL_TEXTURE_2D, textureID);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-	glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
 	glGenerateMipmap(GL_TEXTURE_2D);
 
-	// Parameters
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SOIL_free_image_data(image);
+
+	return textureID;
+}
+GLint TextureFromEmbedded(const aiTexture* embeddedTex)
+{
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+	int width, height, channels;
+	unsigned char* image = nullptr;
+
+	if (embeddedTex->mHeight == 0)
+	{
+		image = SOIL_load_image_from_memory(
+			reinterpret_cast<const unsigned char*>(embeddedTex->pcData),
+			embeddedTex->mWidth,
+			&width, &height, &channels, SOIL_LOAD_AUTO
+		);
+	}
+
+	if (image)
+	{
+		GLenum format = (channels == 4) ? GL_RGBA : GL_RGB;
+		glBindTexture(GL_TEXTURE_2D, textureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_2D, 0);
+		SOIL_free_image_data(image);
+	}
 
 	return textureID;
 }

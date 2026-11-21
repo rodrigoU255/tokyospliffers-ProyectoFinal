@@ -19,6 +19,9 @@
 
 using namespace std;
 
+
+#define MAX_BONE_INFLUENCE 4
+
 struct Vertex
 {
 	// Position
@@ -27,6 +30,19 @@ struct Vertex
 	glm::vec3 Normal;
 	// TexCoords
 	glm::vec2 TexCoords;
+
+	// Datos para Skeletal Animation
+	int m_BoneIDs[MAX_BONE_INFLUENCE];
+	float m_Weights[MAX_BONE_INFLUENCE];
+
+	Vertex()
+	{
+		for (int i = 0; i < MAX_BONE_INFLUENCE; i++)
+		{
+			m_BoneIDs[i] = -1;
+			m_Weights[i] = 0.0f;
+		}
+	}
 };
 
 struct Texture
@@ -59,35 +75,44 @@ public:
 	// Render the mesh
 	void Draw(Shader shader)
 	{
-		// Bind appropriate textures
 		GLuint diffuseNr = 1;
 		GLuint specularNr = 1;
 
 		for (GLuint i = 0; i < this->textures.size(); i++)
 		{
-			glActiveTexture(GL_TEXTURE0 + i); // Active proper texture unit before binding
-											  // Retrieve texture number (the N in diffuse_textureN)
-			stringstream ss;
+			glActiveTexture(GL_TEXTURE0 + i);
 			string number;
 			string name = this->textures[i].type;
 
 			if (name == "texture_diffuse")
 			{
-				ss << diffuseNr++; // Transfer GLuint to stream
+				if (diffuseNr == 1)
+				{
+					glUniform1i(glGetUniformLocation(shader.Program, "material.diffuse"), i);
+				}
+				number = std::to_string(diffuseNr++);
 			}
 			else if (name == "texture_specular")
 			{
-				ss << specularNr++; // Transfer GLuint to stream
+				if (specularNr == 1)
+				{
+					glUniform1i(glGetUniformLocation(shader.Program, "material.specular"), i);
+				}
+				number = std::to_string(specularNr++);
 			}
 
-			number = ss.str();
-			// Now set the sampler to the correct texture unit
+			// Compatibilidad con shaders que usen texture_diffuse1 / texture_specular1
 			glUniform1i(glGetUniformLocation(shader.Program, (name + number).c_str()), i);
-			// And finally bind the texture
 			glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
 		}
 
-		// Also set each mesh's shininess property to a default value (if you want you could extend this to another mesh property and possibly change this value)
+		// Si el modelo no tiene mapa especular (como tu .dae), evita que material.specular
+		// lea por defecto la textura difusa en GL_TEXTURE0
+		if (specularNr == 1)
+		{
+			glUniform1i(glGetUniformLocation(shader.Program, "material.specular"), this->textures.size());
+		}
+
 		glUniform1f(glGetUniformLocation(shader.Program, "material.shininess"), 16.0f);
 
 		// Draw mesh
@@ -95,12 +120,12 @@ public:
 		glDrawElements(GL_TRIANGLES, this->indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
-		// Always good practice to set everything back to defaults once configured.
 		for (GLuint i = 0; i < this->textures.size(); i++)
 		{
 			glActiveTexture(GL_TEXTURE0 + i);
 			glBindTexture(GL_TEXTURE_2D, 0);
 		}
+		glActiveTexture(GL_TEXTURE0);
 	}
 
 private:
@@ -137,6 +162,15 @@ private:
 		// Vertex Texture Coords
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, TexCoords));
+
+
+		// Bone IDs (location = 3) -> IMPORTANTE: glVertexAttribIPointer para enteros
+		glEnableVertexAttribArray(3);
+		glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
+
+		// Bone Weights (location = 4)
+		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
 
 		glBindVertexArray(0);
 	}

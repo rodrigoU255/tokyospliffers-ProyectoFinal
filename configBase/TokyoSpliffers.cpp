@@ -26,7 +26,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Model.h"
-
+#include "Animator.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -308,7 +308,7 @@ int main()
 	Model SkyBox((char*)"Models/skysphere.obj");
 
 	//Model chamaca((char*)"Models/MeinGott.glb");
-	Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
+	//Model chamaca((char*)"Models/Player/PlayerIdle1.obj");
 
 
 	Model PalmeraTronco((char*)"Models/palmera/tronco.obj");
@@ -326,7 +326,7 @@ int main()
 	}
 
 
-	Model PRun1((char*)"Models/Player/PlayerRun1.obj");
+	/*Model PRun1((char*)"Models/Player/PlayerRun1.obj");
 	Model PRun2((char*)"Models/Player/PlayerRun2.obj");
 	Model PRun3((char*)"Models/Player/PlayerRun3.obj");
 	Model PRun4((char*)"Models/Player/PlayerRun4.obj");
@@ -334,7 +334,7 @@ int main()
 	Model PRun6((char*)"Models/Player/PlayerRun6.obj");
 	
 	std::vector<Model> RunModels{PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
-	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20};
+	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20};*/
 
 	//Model DogBody((char*)"Models/DogBody.obj");
 	//Model HeadDog((char*)"Models/HeadDog.obj");
@@ -345,6 +345,16 @@ int main()
 	//Model B_LeftLeg((char*)"Models/B_LeftLegDog.obj");
 
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
+	Model chamaca((char*)"Models/Player/PlayerBase.dae",true);
+
+	// 2. Cargamos los clips de animación (si ambos están en MeinGott.glb, usa índices 0 y 1;
+	//    si están en archivos separados, pon la ruta de cada .glb con índice 0)
+
+	SkeletalAnimation animIdle("Models/Player/PlayerBase.dae", &chamaca, 0);
+	SkeletalAnimation animRun("Models/Player/PlayerRun.dae", &chamaca, 0);
+
+	// 3. Creamos el reproductor iniciando en Idle
+	Animator animator(&animIdle);
 
 	Model Gradas((char*)"Models/Stands/Stands.obj");
 	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
@@ -356,14 +366,12 @@ int main()
 	Model Edificio((char*)"Models/Edificio/Edificio.obj");
 	Model Reflector((char*)"Models/Spotlight/spotlight.obj");
 	
-	Model Atsuko((char*)"Models/SAtsuko/SAtsuko.obj");
-	Model Hoshino((char*)"Models/Hoshino/SHoshino.obj");
-	Model Koharu((char*)"Models/Koharu/Koharu.obj");
-	Model Shiroko((char*)"Models/Shiroko/Shiroko.obj");
-
+	
 	Model Sea((char*)"Models/sea.obj");
 	Model Mountein((char*)"Models/mounteindew.obj");
 
+
+	Model stadium((char*)"Models/Stadium/Estadio.obj");
 
 	//arbitro
 	Model TorsoPC((char*)"Models/arbitro/TorsoPC.obj");
@@ -484,11 +492,16 @@ int main()
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.difuse"), 0);
 	glUniform1i(glGetUniformLocation(lightingShader.Program, "Material.specular"), 1);
 
+
+
 	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.21f, 10000.0f); 
 
 	// Game loop
 	while (!glfwWindowShouldClose(window))
 	{
+		GLint isAnimatedLoc = glGetUniformLocation(lightingShader.Program, "isAnimated");
+		glUniform1i(isAnimatedLoc, GL_FALSE);
+
 
 		// Calculate deltatime of current frame
 		GLfloat currentFrame = glfwGetTime();
@@ -696,19 +709,41 @@ int main()
 			bIsRunning = false;
 		}
 
+		if (bIsRunning && !bIsFirstPerson) {
+			animator.PlayAnimation(&animRun);
+		}
+		else {
+			animator.PlayAnimation(&animIdle);
+		}
+
+
+		animator.UpdateAnimation(deltaTime);
+
+		PlayerModel = glm::translate(PlayerModel, glm::vec3(0.0f, -1.0f, 0.0f));
+
 		PlayerModel = glm::rotate(PlayerModel, player_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
 		//PlayerModel = glm::rotate(PlayerModel, 135.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-		PlayerModel = glm::translate(PlayerModel, glm::vec3(0.0f, -1.0f, 0.0f));
+		PlayerModel = glm::rotate(PlayerModel, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		
 		PlayerModel = glm::scale(PlayerModel, glm::vec3(0.21f, 0.21f, 0.21f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(PlayerModel));
 
 
-		if (bIsRunning && !bIsFirstPerson) {
-			DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
-		}
-		else {
+		//if (bIsRunning && !bIsFirstPerson) {
+		//	//DoAnimation(1.0f,Run_keyposes,RunModels,lightingShader,bIsRunning);
+		//}
+		//else {
+		//	chamaca.Draw(lightingShader);
+
+		//}
+
+		if (!bIsFirstPerson) {
+			glUniform1i(isAnimatedLoc, GL_TRUE);       // Activas skinning para la animacion
+			animator.SendMatricesToShader(lightingShader); //Envio de la info de huesos
 			chamaca.Draw(lightingShader);
+			glUniform1i(isAnimatedLoc, GL_FALSE);      //Apagar skinning para la animacion
 		}
+
 
 
 		glm::vec3 PalmeraPos = glm::vec3(10.0f, -1.0f, -5.0f);
@@ -824,6 +859,12 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelSea));
 		Sea.Draw(lightingShader);
 
+		// Stadium (stadium.obj)
+		glm::mat4 modelStadium = glm::mat4(1.0f);
+		modelStadium = glm::translate(modelStadium, glm::vec3(300.0f, 0.0f, 80.0f));
+		modelStadium = glm::scale(modelStadium, glm::vec3(0.8f, 0.8f, 0.8f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelStadium));
+		stadium.Draw(lightingShader);
 
 		//ARBITRO:
 
@@ -1005,65 +1046,6 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelE));
 		Edificio.Draw(lightingShader);
 
-		//Atsuko
-		glm::mat4 modelAtsuko = glm::mat4(1.0f);
-		modelAtsuko = glm::translate(modelAtsuko, glm::vec3(15.0f, 0.05f, 0.0f));
-		modelAtsuko = glm::rotate(modelAtsuko, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelAtsuko = glm::scale(modelAtsuko, glm::vec3(1.75f, 1.75f, 1.75f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelAtsuko));
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-
-		Atsuko.Draw(lightingShader);
-
-		glDisable(GL_BLEND);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-
-		//Koharu
-		glm::mat4 modelKoharu = glm::mat4(1.0f);
-		modelKoharu = glm::translate(modelKoharu, glm::vec3(-10.0f, 0.05f, 10.0f));
-		modelKoharu = glm::rotate(modelKoharu, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelKoharu = glm::scale(modelKoharu, glm::vec3(1.75f, 1.75f, 1.75f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelKoharu));
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-
-		Koharu.Draw(lightingShader);
-
-		glDisable(GL_BLEND);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-
-		//Shiroko
-		glm::mat4 modelShiroko = glm::mat4(1.0f);
-		modelShiroko = glm::translate(modelShiroko, glm::vec3(-5.0f, -1.35f, -20.0f));
-		modelShiroko = glm::rotate(modelShiroko, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelShiroko = glm::scale(modelShiroko, glm::vec3(1.75f, 1.75f, 1.75f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelShiroko));
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-
-		Shiroko.Draw(lightingShader);
-
-		glDisable(GL_BLEND);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
-
-		//Hoshino
-		glm::mat4 modelHoshino = glm::mat4(1.0f);
-		modelHoshino = glm::translate(modelHoshino, glm::vec3(15.0f, 0.5f, 10.0f));
-		modelHoshino = glm::rotate(modelHoshino, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelHoshino = glm::scale(modelHoshino, glm::vec3(0.55f, 0.55f, 0.55f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelHoshino));
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 1);
-
-		Hoshino.Draw(lightingShader);
-
-		glDisable(GL_BLEND);
-		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 		
 
 		// Reflector (spotlight.obj)
@@ -1074,7 +1056,7 @@ int main()
 		Reflector.Draw(lightingShader);
 
 
-		// 3. Dibujar el Balón/Dog (Dinámico)
+		// 3. Dibujar el Balón
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
