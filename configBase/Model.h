@@ -434,7 +434,7 @@ GLint TextureFromEmbedded(const aiTexture* embeddedTex)
 
 btRigidBody* LoadRigidCollition(const std::string& path, glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
 {
-	// 1. Usar Assimp solo para leer los polígonos (forzamos triangulación)
+
 	const aiScene* scene = aiImportFile(path.c_str(), aiProcess_Triangulate);
 
 	if (!scene || !scene->mRootNode) {
@@ -442,17 +442,17 @@ btRigidBody* LoadRigidCollition(const std::string& path, glm::vec3 position, glm
 		return nullptr;
 	}
 
-	// 2. Crear el contenedor de triángulos de Bullet
+
 	btTriangleMesh* trimesh = new btTriangleMesh();
 
-	// 3. Extraer la geometría de TODAS las mallas dentro del archivo
+
 	for (unsigned int m = 0; m < scene->mNumMeshes; m++) {
 		aiMesh* mesh = scene->mMeshes[m];
 
 		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
 			aiFace face = mesh->mFaces[i];
 
-			// Si es un triángulo, lo enviamos a Bullet
+
 			if (face.mNumIndices == 3) {
 				aiVector3D v0 = mesh->mVertices[face.mIndices[0]];
 				aiVector3D v1 = mesh->mVertices[face.mIndices[1]];
@@ -462,19 +462,17 @@ btRigidBody* LoadRigidCollition(const std::string& path, glm::vec3 position, glm
 					btVector3(v0.x, v0.y, v0.z),
 					btVector3(v1.x, v1.y, v1.z),
 					btVector3(v2.x, v2.y, v2.z),
-					true // true optimiza vértices duplicados
+					true
 				);
 			}
 		}
 	}
 
-	// 4. Liberar Assimp de la memoria (ya tenemos los datos en Bullet)
 	aiReleaseImport(scene);
 
-	// 5. Crear el cuerpo estático de Bullet (Masa 0)
 	btBvhTriangleMeshShape* terrainShape = new btBvhTriangleMeshShape(trimesh, true);
 
-	terrainShape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
+	/*terrainShape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));*/
 
 
 	btTransform transform;
@@ -484,9 +482,12 @@ btRigidBody* LoadRigidCollition(const std::string& path, glm::vec3 position, glm
 
 
 	btQuaternion rot;
-	//rot.setEuler(glm::radians(rotation.y), glm::radians(rotation.x), glm::radians(rotation.z)); // Para en radianes
-	rot.setEuler(rotation.y, rotation.x, rotation.z); // En euler
+	rot.setEuler(glm::radians(rotation.y), glm::radians(rotation.x), glm::radians(rotation.z)); // Para en radianes
+	//rot.setEuler(rotation.y, rotation.x, rotation.z); // En euler
 	transform.setRotation(rot);
+
+
+	terrainShape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
 
 
 	btDefaultMotionState* motionState = new btDefaultMotionState(transform);

@@ -31,7 +31,6 @@ struct Vertex
 	// TexCoords
 	glm::vec2 TexCoords;
 
-	// Datos para Skeletal Animation
 	int m_BoneIDs[MAX_BONE_INFLUENCE];
 	float m_Weights[MAX_BONE_INFLUENCE];
 
@@ -164,11 +163,9 @@ private:
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid *)offsetof(Vertex, TexCoords));
 
 
-		// Bone IDs (location = 3) -> IMPORTANTE: glVertexAttribIPointer para enteros
 		glEnableVertexAttribArray(3);
 		glVertexAttribIPointer(3, 4, GL_INT, sizeof(Vertex), (void*)offsetof(Vertex, m_BoneIDs));
 
-		// Bone Weights (location = 4)
 		glEnableVertexAttribArray(4);
 		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, m_Weights));
 

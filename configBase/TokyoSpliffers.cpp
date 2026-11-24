@@ -40,12 +40,16 @@
 // Function prototypes
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void MouseCallback(GLFWwindow* window, double xPos, double yPos);
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void DoMovement();
 void Animation();
+void DoorAnimation();
+void BallAnimation(btRigidBody* player_body);
+void CrabAnimation();
 void AnimationKeyFrames();
 void interpolation();
 void resetElements();
-
+void Teleport(btRigidBody* player_body, const glm::vec3& coordinates);
 
 
 GLfloat current_animation_time{};
@@ -123,6 +127,8 @@ float vertices[] = {
 
 glm::vec3 Light1 = glm::vec3(0);
 
+
+
 //Anim
 float rotBall = 0.0f;
 bool AnimBall = false;
@@ -133,11 +139,32 @@ float FLegs = 0.0f;
 float RLegs = 0.0f;
 float head = 0.0f;
 float tail = 0.0f;
-glm::vec3 dogPos(0.0f, 0.5f, 3.0f);
+glm::vec3 dogPos(277.0f, 10.7f, 145.0f);
 float dogRot = 0.0f;
 float rotate_dog = 0.0f;
 bool step = false;
 bool rotated{ false };
+
+
+
+glm::vec3 ballPos {};
+enum class Ball_State : int {
+	BS_Equipped,
+	BS_Throw,
+	BS_Unequipped
+};
+glm::vec3 velocity{ 0.0f };
+Ball_State Estado_Pelota{ Ball_State::BS_Unequipped };
+glm::vec3 crabPos{ 0.0f };
+float crabRot{0.0f};
+
+bool bIsDoorOpen{ false };
+bool ActiveDoorAnimation{ false };
+float doorRot{ 180.0f };
+
+
+
+
 
 float dayCycle = 0.0f;
 bool dayCycleOn = false;
@@ -146,14 +173,20 @@ bool gymLights = true;
 bool gymSpotLight = false;
 
 
+bool bIsInside{ false };
+btRigidBody* playerBody {nullptr};
+
 // Deltatime
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
 GLfloat lastFrame = 0.0f;  	// Time of last frame
 
 GLfloat TotaldeltaTimes{ 0.0f };
 
-float arbitroPosX = 0.0f, arbitroPosY = 0.0f, arbitroPosZ = 0.0f;
+float arbitroPosX = 300.0f, arbitroPosY = 10.0f, arbitroPosZ = 90.0f;
 float rotArbitro = 0.0f;
+
+
+//(300.0f, 0.0f, 80.0f
 
 // Ángulos de las extremidades y torso
 float anguloTorsoY = 0.0f;
@@ -164,7 +197,7 @@ float anguloAnteBrazoD = 0.0f;
 float anguloManoD = 0.0f;
 float anguloDedos = 0.0f;
 
-// --- ESTRUCTURA DE KEYFRAMES ---
+// --- ESTRUCTURA DE KEYFRAMES --
 #define MAX_FRAMES 15
 int i_max_steps = 50;
 int i_curr_steps = 0;
@@ -258,7 +291,8 @@ int main()
 	btDefaultMotionState* playerMotionState = new btDefaultMotionState(playerStartTransform);
 
 	btRigidBody::btRigidBodyConstructionInfo playerInfo(playerMass, playerMotionState, playerShape, playerInertia);
-	btRigidBody* playerBody = new btRigidBody(playerInfo);
+	//btRigidBody* playerBody = new btRigidBody(playerInfo);
+	playerBody = new btRigidBody(playerInfo);
 
 	playerBody->setAngularFactor(btVector3(0.0f, 1.0f, 0.0f));
 	playerBody->setFriction(0.0f);
@@ -283,7 +317,7 @@ int main()
 
 	glfwSetKeyCallback(window, KeyCallback);
 	glfwSetCursorPosCallback(window, MouseCallback);
-
+	glfwSetMouseButtonCallback(window, MouseButtonCallback);
 	// GLFW ptions
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -326,26 +360,20 @@ int main()
 	}
 
 
-	/*Model PRun1((char*)"Models/Player/PlayerRun1.obj");
-	Model PRun2((char*)"Models/Player/PlayerRun2.obj");
-	Model PRun3((char*)"Models/Player/PlayerRun3.obj");
-	Model PRun4((char*)"Models/Player/PlayerRun4.obj");
-	Model PRun5((char*)"Models/Player/PlayerRun5.obj");
-	Model PRun6((char*)"Models/Player/PlayerRun6.obj");
-	
-	std::vector<Model> RunModels{PRun1,PRun2,PRun3,PRun4,PRun5,PRun6,PRun6};
-	std::vector<int> Run_keyposes{0, 2, 8, 11, 13 , 18 ,20};*/
 
-	//Model DogBody((char*)"Models/DogBody.obj");
-	//Model HeadDog((char*)"Models/HeadDog.obj");
-	//Model DogTail((char*)"Models/TailDog.obj");
-	//Model F_RightLeg((char*)"Models/F_RightLegDog.obj");
-	//Model F_LeftLeg((char*)"Models/F_LeftLegDog.obj");
-	//Model B_RightLeg((char*)"Models/B_RightLegDog.obj");
-	//Model B_LeftLeg((char*)"Models/B_LeftLegDog.obj");
+
+	Model DogBody((char*)"Models/DogBody.obj");
+	Model HeadDog((char*)"Models/HeadDog.obj");
+	Model DogTail((char*)"Models/TailDog.obj");
+	Model F_RightLeg((char*)"Models/F_RightLegDog.obj");
+	Model F_LeftLeg((char*)"Models/F_LeftLegDog.obj");
+	Model B_RightLeg((char*)"Models/B_RightLegDog.obj");
+	Model B_LeftLeg((char*)"Models/B_LeftLegDog.obj");
 
 	//Model chamaca((char*)"Models/SK_HenoHeno06.fbx");
 	Model chamaca((char*)"Models/Player/PlayerBase.dae",true);
+
+	Model jugadoras((char*)"Models/Player/Players.dae", true);
 
 	// 2. Cargamos los clips de animación (si ambos están en MeinGott.glb, usa índices 0 y 1;
 	//    si están en archivos separados, pon la ruta de cada .glb con índice 0)
@@ -355,6 +383,8 @@ int main()
 
 	// 3. Creamos el reproductor iniciando en Idle
 	Animator animator(&animIdle);
+	Animator PlayersAnimations(&animIdle);
+
 
 	Model Gradas((char*)"Models/Stands/Stands.obj");
 	Model CanchaVolley((char*)"Models/Volleyball_Net/Voleyball_Court.obj");
@@ -372,6 +402,11 @@ int main()
 
 
 	Model stadium((char*)"Models/Stadium/Estadio.obj");
+
+	Model crab((char*)"Models/Animated/crab.obj");
+	Model room((char*)"Models/Animated/room.obj");
+	Model door((char*)"Models/Animated/door.obj");
+	Model caminadora((char*)"Models/Animated/Treadmill.obj");
 
 	//arbitro
 	Model TorsoPC((char*)"Models/arbitro/TorsoPC.obj");
@@ -475,6 +510,16 @@ int main()
 
 	btRigidBody* SeaCollision{ LoadRigidCollition("Models/sea.obj", glm::vec3(0.0f,-3.0f,0.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(1.0f,1.0f,1.0f)) };
 	if (SeaCollision) { dynamicsWorld->addRigidBody(SeaCollision); }
+	
+	btRigidBody* StadiumCollision{ LoadRigidCollition("Models/stadium/Estadio_Collition.obj", glm::vec3(300.0f, 0.0f, 80.0f),glm::vec3(0.0f,0.0f,0.0f),glm::vec3(0.8f,0.8f,0.8f)) };
+	if (StadiumCollision) { dynamicsWorld->addRigidBody(StadiumCollision); }
+	
+	btRigidBody* RoomCollision{ LoadRigidCollition("Models/Animated/room_collition.obj", glm::vec3(280.0f, 10.0f, 151.0f),glm::vec3(0.0f,180.0f,0.0f),glm::vec3(1.25f,1.25f,1.25f)) };
+	if (RoomCollision) { dynamicsWorld->addRigidBody(RoomCollision);
+	std::cout << "Cargado colision del cuarto";
+	}
+	
+
 
 	// First, set the container's VAO (and VBO)
 	GLuint VBO, VAO;
@@ -514,6 +559,9 @@ int main()
 		glfwPollEvents();
 		DoMovement();
 		Animation();
+		DoorAnimation();
+		BallAnimation(playerBody);
+		CrabAnimation();
 		AnimationKeyFrames();
 
 		//MOVEMENT
@@ -716,9 +764,13 @@ int main()
 			animator.PlayAnimation(&animIdle);
 		}
 
+		PlayersAnimations.PlayAnimation(&animIdle);
+
 
 		animator.UpdateAnimation(deltaTime);
-
+		PlayersAnimations.UpdateAnimation(deltaTime);
+		
+		
 		PlayerModel = glm::translate(PlayerModel, glm::vec3(0.0f, -1.0f, 0.0f));
 
 		PlayerModel = glm::rotate(PlayerModel, player_rotation, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -743,7 +795,6 @@ int main()
 			chamaca.Draw(lightingShader);
 			glUniform1i(isAnimatedLoc, GL_FALSE);      //Apagar skinning para la animacion
 		}
-
 
 
 		glm::vec3 PalmeraPos = glm::vec3(10.0f, -1.0f, -5.0f);
@@ -808,51 +859,64 @@ int main()
 			HojasPalmera[i].Draw(lightingShader);
 		}
 
-		//glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
+		glm::mat4 modelTemp = glm::mat4(1.0f); //Temp
 
-		//glm::mat4 modelDog = glm::mat4(1.0f);
+		glm::mat4 modelDog = glm::mat4(1.0f);
 
-		//modelTemp = modelDog = glm::translate(modelDog, dogPos);
-		//modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//DogBody.Draw(lightingShader);
-		////Head
-		//modelDog = modelTemp;
-		//modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.093f, 0.208f));
-		//modelDog = glm::rotate(modelDog, glm::radians(head), glm::vec3(0.0f, 0.0f, 1.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//HeadDog.Draw(lightingShader);
-		////Tail 
-		//modelDog = modelTemp;
-		//modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.026f, -0.288f));
-		//modelDog = glm::rotate(modelDog, glm::radians(tail), glm::vec3(0.0f, 0.0f, -1.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//DogTail.Draw(lightingShader);
-		////Front Left Leg
-		//modelDog = modelTemp;
-		//modelDog = glm::translate(modelDog, glm::vec3(0.112f, -0.044f, 0.074f));
-		//modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//F_LeftLeg.Draw(lightingShader);
-		////Front Right Leg
-		//modelDog = modelTemp;
-		//modelDog = glm::translate(modelDog, glm::vec3(-0.111f, -0.055f, 0.074f));
-		//modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(1.0f, 0.0f, 0.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//F_RightLeg.Draw(lightingShader);
-		////Back Left Leg
-		//modelDog = modelTemp;
-		//modelDog = glm::translate(modelDog, glm::vec3(0.082f, -0.046, -0.218));
-		//modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(1.0f, 0.0f, 0.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//B_LeftLeg.Draw(lightingShader);
-		////Back Right Leg
-		//modelDog = modelTemp;
-		//modelDog = glm::translate(modelDog, glm::vec3(-0.083f, -0.057f, -0.231f));
-		//modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
-		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
-		//B_RightLeg.Draw(lightingShader);
-		//
+		modelTemp = modelDog = glm::translate(modelDog, dogPos);
+		modelTemp = modelDog = glm::rotate(modelDog, glm::radians(dogRot), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		DogBody.Draw(lightingShader);
+		//Head
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.093f, 0.208f));
+		modelDog = glm::rotate(modelDog, glm::radians(head), glm::vec3(0.0f, 0.0f, 1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		HeadDog.Draw(lightingShader);
+		//Tail 
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.0f, 0.026f, -0.288f));
+		modelDog = glm::rotate(modelDog, glm::radians(tail), glm::vec3(0.0f, 0.0f, -1.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		DogTail.Draw(lightingShader);
+		//Front Left Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.112f, -0.044f, 0.074f));
+		modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		F_LeftLeg.Draw(lightingShader);
+		//Front Right Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(-0.111f, -0.055f, 0.074f));
+		modelDog = glm::rotate(modelDog, glm::radians(FLegs), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		F_RightLeg.Draw(lightingShader);
+		//Back Left Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(0.082f, -0.046, -0.218));
+		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		B_LeftLeg.Draw(lightingShader);
+		//Back Right Leg
+		modelDog = modelTemp;
+		modelDog = glm::translate(modelDog, glm::vec3(-0.083f, -0.057f, -0.231f));
+		modelDog = glm::rotate(modelDog, glm::radians(RLegs), glm::vec3(-1.0f, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		B_RightLeg.Draw(lightingShader);
+		
+
+		//Caminadora
+
+		modelDog = glm::mat4(1.0f);;
+		modelDog = glm::translate(modelDog, glm::vec3(dogPos.x, dogPos.y-0.6f, dogPos.z));
+		modelDog = glm::scale(modelDog, glm::vec3(0.03f, 0.03f, 0.03f));
+		modelDog = glm::rotate(modelDog, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelDog));
+		caminadora.Draw(lightingShader);
+
+
+
+
 		// Sea (sea.obj)
 		glm::mat4 modelSea = glm::mat4(1.0f);
 		modelSea = glm::translate(modelSea, glm::vec3(0.0f, -2.0f, 0.0f));
@@ -867,6 +931,11 @@ int main()
 		stadium.Draw(lightingShader);
 
 		//ARBITRO:
+		arbitroPosX = 300.0f;
+		arbitroPosY = 10.1f;
+		arbitroPosZ = 90.0f;
+
+		rotArbitro = 180.0f;
 
 		glm::mat4 modelArbitro = glm::mat4(1.0f);
 
@@ -978,6 +1047,14 @@ int main()
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
 		CanchaVolley.Draw(lightingShader);
 
+		modelCancha = glm::mat4(1.0f);
+		modelCancha = glm::translate(modelCancha, glm::vec3(300.0f, 10.09f, 80.0f));
+		modelCancha = glm::rotate(modelCancha, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelCancha = glm::scale(modelCancha, glm::vec3(1.3f, 1.4f, 0.9f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelCancha));
+		CanchaVolley.Draw(lightingShader);
+
+
 		// Gimnasio (gymnasium.obj)
 		glm::mat4 modelGimnasio = glm::mat4(1.0f);
 		modelGimnasio = glm::translate(modelGimnasio, glm::vec3(0.0f, 0.005f, 15.0f));
@@ -1039,12 +1116,97 @@ int main()
 		Silla2.Draw(lightingShader);
 
 		// Edificio (Edificio.obj)
+		
+		glm::mat4 modelRoom = glm::mat4(1.0f);
+		modelRoom = glm::translate(modelRoom, glm::vec3(280.0f, 10.0f, 151.0f));
+		modelRoom = glm::rotate(modelRoom, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelRoom = glm::scale(modelRoom, glm::vec3(1.25f, 1.25f, 1.25f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelRoom));
+		room.Draw(lightingShader);
+		
+		modelRoom = glm::mat4(1.0f);
+		modelRoom = glm::translate(modelRoom, glm::vec3(280.0f, 10.0f, 151.0f));
+		modelRoom = glm::rotate(modelRoom, glm::radians(doorRot), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelRoom = glm::scale(modelRoom, glm::vec3(1.25f, 1.25f, 1.25f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelRoom));
+		door.Draw(lightingShader);
+
+		modelRoom = glm::mat4(1.0f);
+		modelRoom = glm::translate(modelRoom, glm::vec3(280.0f, 10.0f, 142.7f));
+		modelRoom = glm::rotate(modelRoom, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelRoom = glm::scale(modelRoom, glm::vec3(1.25f, 1.25f, 1.25f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelRoom));
+		door.Draw(lightingShader);
+
+		
+		
 		glm::mat4 modelE = glm::mat4(1.0f);
-		modelE = glm::translate(modelE, glm::vec3(-15.0f, 0.05f, 35.0f));
-		modelE = glm::rotate(modelE, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelE = glm::scale(modelE, glm::vec3(0.035f, 0.035f, 0.035f));
+		modelE = glm::translate(modelE, crabPos);
+		modelE = glm::rotate(modelE, glm::radians(crabRot), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelE = glm::scale(modelE, glm::vec3(0.1f, 0.1f, 0.1f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelE));
-		Edificio.Draw(lightingShader);
+		crab.Draw(lightingShader);
+
+		glm::mat4 modelP = glm::mat4(1.0f);
+		modelP = glm::translate(modelP, glm::vec3(-1.0f, 0.0f, 17.0f));
+		modelP = glm::rotate(modelP, glm::radians(140.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelP = glm::rotate(modelP, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); 
+		modelP = glm::scale(modelP, glm::vec3(0.21f, 0.21f, 0.21f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelP));
+		//jugadoras.Draw(lightingShader);
+
+		glUniform1i(isAnimatedLoc, GL_TRUE);       // Activas skinning para la animacion
+		PlayersAnimations.SendMatricesToShader(lightingShader); //Envio de la info de huesos
+		jugadoras.Draw(lightingShader);
+		glUniform1i(isAnimatedLoc, GL_FALSE);      //Apagar skinning para la animacion
+
+		modelP = glm::mat4(1.0f);
+		modelP = glm::translate(modelP, glm::vec3(2.0f, 0.0f, 19.0f));
+		modelP = glm::rotate(modelP, glm::radians(-160.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelP = glm::rotate(modelP, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); 
+		modelP = glm::scale(modelP, glm::vec3(0.21f, 0.21f, 0.21f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelP));
+		
+
+		glUniform1i(isAnimatedLoc, GL_TRUE);      
+		PlayersAnimations.SendMatricesToShader(lightingShader);
+		jugadoras.Draw(lightingShader);
+		glUniform1i(isAnimatedLoc, GL_FALSE);      
+
+		modelP = glm::mat4(1.0f);
+		modelP = glm::translate(modelP, glm::vec3(304.0f, 10.09f, 83.0f));
+		modelP = glm::rotate(modelP, glm::radians(-120.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelP = glm::rotate(modelP, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelP = glm::scale(modelP, glm::vec3(0.21f, 0.21f, 0.21f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelP));
+
+
+		glUniform1i(isAnimatedLoc, GL_TRUE);   
+		PlayersAnimations.SendMatricesToShader(lightingShader); 
+		jugadoras.Draw(lightingShader);
+		glUniform1i(isAnimatedLoc, GL_FALSE);      
+
+		modelP = glm::mat4(1.0f);
+		modelP = glm::translate(modelP, glm::vec3(308.0f, 10.09f, 78.0f));
+		modelP = glm::rotate(modelP, glm::radians(-70.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		modelP = glm::rotate(modelP, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelP = glm::scale(modelP, glm::vec3(0.21f, 0.21f, 0.21f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelP));
+
+
+		glUniform1i(isAnimatedLoc, GL_TRUE);    
+		PlayersAnimations.SendMatricesToShader(lightingShader); 
+		jugadoras.Draw(lightingShader);
+		glUniform1i(isAnimatedLoc, GL_FALSE);    
+
+		//-----------------------------------------------------------------------------------------
+		glm::mat4 modelBall = glm::mat4(1.0f);
+		modelBall = glm::translate(modelBall, ballPos);
+		modelBall = glm::rotate(modelBall, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//modelE = glm::scale(modelE, glm::vec3(0.1f, 0.1f, 0.1f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(modelBall));
+		Dog.Draw(lightingShader);
+
 
 		
 
@@ -1061,8 +1223,7 @@ int main()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glUniform1i(glGetUniformLocation(lightingShader.Program, "transparency"), 0);
 
-		// ¡AQUÍ ESTÁ LA MAGIA! Pasamos la matriz 'model' calculada por Bullet Physics directamente al shader
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		
 		Dog.Draw(lightingShader);
 
 		glDisable(GL_BLEND);
@@ -1191,6 +1352,30 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 	{
 		play = !play;
 	}
+	
+	if (keys[GLFW_KEY_5] /*&& action == GLFW_PRESS*/)
+	{
+		AnimDog = !AnimDog;
+	}
+
+	
+	if (keys[GLFW_KEY_T]){
+
+		if (playerBody) {	
+			if (bIsInside) {	
+				Teleport(playerBody, glm::vec3(280.0f, 15.0f, 155.0f));
+				bIsInside = !bIsInside;
+			}else {
+				Teleport(playerBody, glm::vec3(300.0f, 15.0f, 80.0f));
+				bIsInside = !bIsInside;
+
+			}	
+		}
+	}
+
+	if (keys[GLFW_KEY_E]) {
+		ActiveDoorAnimation = !ActiveDoorAnimation;
+	}
 }
 
 void MouseCallback(GLFWwindow* window, double xPos, double yPos)
@@ -1211,23 +1396,67 @@ void MouseCallback(GLFWwindow* window, double xPos, double yPos)
 	camera.ProcessMouseMovement(xOffset, yOffset);
 }
 
-
-void Animation() {
-	if (AnimBall)
-	{
-		rotBall += 0.4f;
-		//printf("%f", rotBall);
+void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+	if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS) {
+		//ballState = (ballState == 1) ? 0 : 1; // Equipa o suelta
+		Estado_Pelota = Ball_State::BS_Equipped;
 	}
 
-	float quantity{ 0.5f };
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS && Estado_Pelota == Ball_State::BS_Equipped) {
+		//	ballState = 2; // Pasa a estado lanzada
+		//	glm::vec3 dir = bIsFirstPerson ? camera.GetFront() : glm::vec3(sin(player_rotation), 0.35f, cos(player_rotation));
+		//	ballVel = glm::normalize(dir) * 15.0f; // Velocidad inicial del lanzamiento
 
+		Estado_Pelota = Ball_State::BS_Throw;
+		glm::vec3 dir = glm::normalize(glm::vec3(sin(player_rotation), 0.4f, cos(player_rotation)));
+		velocity = dir * 15.0f;
+	}
+}
+
+void BallAnimation(btRigidBody* player_body) {
+	
+	switch (Estado_Pelota){
+	case Ball_State::BS_Equipped:
+		{
+		btVector3 player_location{ player_body->getWorldTransform().getOrigin() };
+		glm::vec3 front = glm::vec3(sin(player_rotation), 0.0f, cos(player_rotation));
+		front.y = 0.0f;
+		ballPos = glm::vec3(player_location.x(), player_location.y() + 0.2f, player_location.z()) + glm::normalize(front) * 1.2f;
+		}
+		break;
+	case Ball_State::BS_Throw:
+		
+		ballPos += velocity * deltaTime;
+		velocity -= 9.81f * deltaTime;
+		if (ballPos.y <= 0.3f) {
+			ballPos.y = 0.3f;
+			Estado_Pelota = Ball_State::BS_Unequipped;
+		}
+		break;
+
+	case Ball_State::BS_Unequipped:
+		break;
+	default:
+		break;
+	}
+}
+
+void CrabAnimation() {
+	crabPos.x = -15.0f + std::cos(TotaldeltaTimes * 1.2f) * 3.5f;
+	crabPos.z = 35.0f + std::sin(TotaldeltaTimes * 1.2f) * 3.5f;
+	//crabRot = -(TotaldeltaTimes * 1.2f);
+	crabRot = -(TotaldeltaTimes * 90.0f);
+}
+
+
+void Animation() {
+
+	float quantity{ 0.5f };
 
 	if (AnimDog) {
 
 
-		dogPos.z += 0.005f;
-
-
+		//dogPos.z += 0.005f;
 		if (!step) {
 			RLegs -= quantity;
 			FLegs -= quantity;
@@ -1329,5 +1558,42 @@ void DoAnimation(GLfloat time, std::vector<int>& keyposes, std::vector<Model>& M
 			Models[i].Draw(shader);
 		}
 	}
+}
 
+void DoorAnimation() {
+	float rate{ 50.0f };
+
+	if (ActiveDoorAnimation) {
+		if (!bIsDoorOpen) {
+			doorRot -= rate * deltaTime;
+			if (doorRot <= 90) {
+				bIsDoorOpen = !bIsDoorOpen;
+				ActiveDoorAnimation = false;
+			}
+		}
+		else {
+			doorRot += rate * deltaTime;
+			if (doorRot >= 180) {
+				bIsDoorOpen = !bIsDoorOpen;
+				ActiveDoorAnimation = false;
+			}
+		}
+	}
+}
+
+void Teleport(btRigidBody* player_body, const glm::vec3& coordinates ) {
+	btTransform transform;
+	transform.setIdentity();
+	transform.setOrigin(btVector3(coordinates.x, coordinates.y, coordinates.z));
+
+	// 1. Mover tanto el cuerpo físico como su estado de movimiento
+	player_body->setWorldTransform(transform);
+	player_body->getMotionState()->setWorldTransform(transform);
+
+	// 2. Eliminar velocidad acumulada (evita salir disparado o morir por caída)
+	player_body->setLinearVelocity(btVector3(0.0f, 0.0f, 0.0f));
+	player_body->setAngularVelocity(btVector3(0.0f, 0.0f, 0.0f));
+
+	// 3. Despertar la cápsula para que la gravedad vuelva a actuar de inmediato
+	player_body->activate(true);
 }
