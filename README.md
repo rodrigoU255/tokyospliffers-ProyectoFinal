@@ -2,16 +2,16 @@
 
 **Materia:** Computación Gráfica e Interacción Humano Computadora
 
-**Grupo de laboratorio:** 12
+**Grupo de Teoria:** 06
 
-**Profesor:** Mtro. Edcel Fuerte Martinez
+**Alumno que entrega:** 321290337
+
 
 **Integrantes:**
 
- - Ayala Leyva Leonardo
+321290337
+321117744
+320560154
 
- - Castillo Matsuo Victor Sungwoo
-
- - Uribe Vázquez Rodrigo
 
  **Semestre: :** 2027-1
