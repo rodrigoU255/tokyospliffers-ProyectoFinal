@@ -1,4 +1,29 @@
-﻿  fuentesDeLuz.cpp
-C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\Model.h(20,10): error C1083: No se puede abrir el archivo incluir: 'BulletDynamics/Dynamics/btRigidBody.h': No such file or directory
-  (compilando archivo de origen "fuentesDeLuz.cpp")
+﻿  TokyoSpliffers.cpp
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\Model.h(357,18): warning C4018: '<': no coinciden signed/unsigned
+  (compilando archivo de origen "TokyoSpliffers.cpp")
   
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(246,42): warning C4305: 'argumento': truncamiento de 'double' a 'const btScalar'
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(552,24): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(805,22): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(822,16): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(837,55): warning C4244: '=': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(852,16): warning C4244: 'inicializando': conversión de 'double' a 'float'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(666,13): warning C4101: 'lightColor': variable local sin referencia
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1385,11): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1386,11): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1390,18): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1391,18): warning C4244: 'inicializando': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1393,10): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1394,10): warning C4244: '=': conversión de 'double' a 'GLfloat'; posible pérdida de datos
+C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\configBase\TokyoSpliffers.cpp(1556,21): warning C4018: '<': no coinciden signed/unsigned
+soil2-debug.lib(SOIL2.obj) : warning LNK4075: se omite '/EDITANDCONTINUE' debido a la especificación '/OPT:ICF'
+LINK : warning LNK4098: la biblioteca predeterminada'MSVCRT' entra en conflicto con otras bibliotecas; use la biblioteca /NODEFAULTLIB:biblioteca
+  Generando código
+  Previous IPDB not found, fall back to full compilation.
+  All 1539 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Generación de código finalizada
+soil2-debug.lib(etc1_utils.obj) : warning LNK4099: no se encontró PDB '' con 'soil2-debug.lib(etc1_utils.obj)' o en ''; se vinculará el objeto sin tener en cuenta información de depuración
+soil2-debug.lib(image_DXT.obj) : warning LNK4099: no se encontró PDB '' con 'soil2-debug.lib(image_DXT.obj)' o en ''; se vinculará el objeto sin tener en cuenta información de depuración
+soil2-debug.lib(image_helper.obj) : warning LNK4099: no se encontró PDB '' con 'soil2-debug.lib(image_helper.obj)' o en ''; se vinculará el objeto sin tener en cuenta información de depuración
+soil2-debug.lib(SOIL2.obj) : warning LNK4099: no se encontró PDB '' con 'soil2-debug.lib(SOIL2.obj)' o en ''; se vinculará el objeto sin tener en cuenta información de depuración
+  configBase.vcxproj -> C:\Users\vicsa\source\repos\tokyospliffers-ProyectoFinal\Release\configBase.exe
